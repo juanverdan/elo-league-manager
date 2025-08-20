@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Jornal da Liga</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+            font-size: 10pt;
+            line-height: 1.4;
+        }
+        #masthead {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        #masthead h1 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 32pt;
+            margin: 0;
+            padding: 0;
+            text-transform: uppercase;
+            border: none;
+            text-align: left;
+        }
+        #masthead .details {
+            text-align: right;
+            font-weight: bold;
+            font-size: 9pt;
+        }
+        main {
+            column-count: 2;
+            column-gap: 25px;
+        }
+        article {
+            margin-bottom: 25px;
+            break-inside: avoid-column;
+        }
+        article .category {
+            font-weight: 700;
+            font-size: 8pt;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 2px;
+        }
+        article h2 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 22pt;
+            margin-top: 0;
+            margin-bottom: 5px;
+            line-height: 1.1;
+            text-align: left;
+            border: none;
+            padding: 0;
+        }
+        article p {
+            text-align: justify;
+            margin-top: 0;
+        }
+        article img {
+            width: 100%;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        blockquote {
+            background-color: #f0f0f0;
+            border: none;
+            padding: 20px;
+            font-size: 16pt;
+            font-weight: bold;
+            font-style: italic;
+            text-align: center;
+            margin: 25px 10%;
+            break-inside: avoid-column;
+        }
+    </style>
+</head>
+<body>
+    <header id="masthead">
+        <h1>Jornal da Liga</h1>
+        <div class="details">
+            <span>{{ data_hoje }}</span><br>
+            <span>Edição #{{ edicao }}</span>
+        </div>
+    </header>
+
+    <blockquote>"{{ editorial }}"</blockquote>
+
+    <main>
+        {% for partida in partidas %}
+        <article>
+            <p class="category">{{ partida.torneio }}</p>
+            <h2>{{ partida.jogador_a }} vs {{ partida.jogador_b }}</h2>
+            
+            {% if partida.imagem_path %}
+                <img src="{{ partida.imagem_path }}">
+            {% endif %}
+
+            <p>{{ partida.resumo }}</p>
+        </article>
+        {% endfor %}
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfil de {{ jogador_nome }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --cor-fundo: #f0f2f5; --cor-container: #ffffff; --cor-texto-principal: #1c1e21;
+            --cor-texto-secundario: #606770; --cor-borda: #ddd; --cor-header-tabela: #1d4ed8;
+            --cor-gold: #ffc107; --cor-silver: #c0c0c0; --cor-bronze: #cd7f32;
+        }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto-principal); margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 20px auto; background: var(--cor-container); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1, h2 { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-top: 0; }
+        .event-list { list-style: none; padding: 0; }
+        .event-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; border-bottom: 1px solid #f0f0f0; }
+        .event-item:last-child { border-bottom: none; }
+        .event-name { font-weight: 500; font-size: 18px; }
+        .event-placement { font-weight: bold; padding: 6px 12px; border-radius: 16px; color: var(--cor-texto-principal); background-color: #e9ecef; white-space: nowrap; }
+        .placement-1st { background-color: var(--cor-gold); color: #333; }
+        .placement-2nd { background-color: var(--cor-silver); color: #333; }
+        .placement-bronze { background-color: var(--cor-bronze); color: white; }
+        .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
+        
+        /* --- ESTILO ATUALIZADO AQUI --- */
+        .content-wrapper {
+            display: flex;
+            gap: 30px;
+            align-items: baseline; /* <-- A MUDANÇA! */
+            margin-top: 30px;
+        }
+        .chart-container {
+            flex: 2; 
+            min-width: 0;
+        }
+        .achievements-container {
+            flex: 1;
+        }
+        .achievements-container h2 {
+             margin-top: 0;
+        }
+        
+        .profile-header { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .profile-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid var(--cor-header-tabela); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="profile-header">
+            <img src="{{ url_for('static', filename='images/avatars/' + avatar_filename) }}" 
+                 onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';"
+                 class="profile-avatar">
+            <h1>Perfil de {{ jogador_nome }}</h1>
+        </div>
+
+        <div class="content-wrapper">
+
+            <div class="chart-container">
+                <h2>Evolução do Rating</h2>
+                <canvas id="eloChart"></canvas>
+            </div>
+
+            <div class="achievements-container">
+                <h2>🏆 Histórico de Conquistas</h2>
+                <ul class="event-list">
+                    {% if historico %}
+                        {% for resultado in historico %}
+                        <li class="event-item">
+                            <span class="event-name">{{ resultado.torneio }}</span>
+                            <span class="event-placement 
+                                {% if '1º' in resultado.colocacao %}placement-1st
+                                {% elif '2º' in resultado.colocacao %}placement-2nd
+                                {% elif '3º' in resultado.colocacao or '4º' in resultado.colocacao %}placement-bronze
+                                {% endif %}">{{ resultado.colocacao }}</span>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="event-item">Nenhum resultado de torneio encontrado.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+        </div>
+
+        <a href="{{ url_for('index') }}" class="back-link">← Voltar para o Ranking</a>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('eloChart');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ labels_grafico | tojson }},
+                datasets: [{
+                    label: 'Rating Elo',
+                    data: {{ dados_grafico | tojson }},
+                    fill: true,
+                    borderColor: 'rgb(29, 78, 216)',
+                    backgroundColor: 'rgba(29, 78, 216, 0.1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: false } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
+</body>
+</html>

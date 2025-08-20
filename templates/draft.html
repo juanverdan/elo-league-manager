@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Loteria do Draft</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root { /* ... suas variáveis de cor ... */ }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #1c1e21; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1, h2 { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-top: 0; }
+        .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: #1d4ed8; font-weight: bold; }
+        .player-selection { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .player-label { display: flex; align-items: center; gap: 8px; background: #f5f6f7; padding: 10px; border-radius: 6px; cursor: pointer; }
+        button { padding: 12px 20px; border-radius: 6px; border: none; font-size: 16px; color: white; font-weight: bold; cursor: pointer; transition: background-color 0.2s; width: 100%; }
+        .btn-calculate { background-color: #007bff; }
+        .btn-draft { background-color: #28a745; font-size: 20px; padding: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+        th { background-color: #1d4ed8; color: white; }
+        .draft-results ol { list-style-type: none; padding: 0; }
+        .draft-results li { background: #f5f6f7; padding: 15px; border-radius: 8px; margin-bottom: 10px; font-size: 18px; font-weight: 500; display: flex; align-items: center; }
+        .draft-pick { font-weight: bold; font-size: 20px; color: #1d4ed8; width: 50px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏀 Loteria do Draft</h1>
+
+        {% if not draft_results %}
+            <form method="post">
+                {% if not chances %}
+                    <h2>1. Selecione os Participantes</h2>
+                    <div class="player-selection">
+                        {% for jogador in todos_jogadores %}
+                        <label class="player-label">
+                            <input type="checkbox" name="participantes" value="{{ jogador.nome }}">
+                            {{ jogador.nome }} ({{ jogador.pontos }})
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="action" value="calcular_chances">
+                    <button type="submit" class="btn-calculate">Calcular Chances para a Pick 1</button>
+                {% else %}
+                    <h2>2. Chances para a 1ª Escolha</h2>
+                    <p>Estas são as probabilidades calculadas com base no ranking. Se estiver correto, confirme para realizar o sorteio!</p>
+                    <table>
+                        <thead><tr><th>Jogador</th><th>Rating</th><th>Chances (em {{ total_bolinhas }})</th><th>Probabilidade</th></tr></thead>
+                        <tbody>
+                        {% for j in chances %}
+                            <tr>
+                                <td>{{ j.nome }}</td>
+                                <td>{{ j.pontos }}</td>
+                                <td>{{ j.bolinhas }}</td>
+                                <td>{{ '%.1f'|format(j.probabilidade) }}%</td>
+                            </tr>
+                            <input type="hidden" name="participantes_confirmados" value="{{ j.nome }}">
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <br>
+                    <input type="hidden" name="action" value="realizar_sorteio">
+                    <button type="submit" class="btn-draft">REALIZAR O SORTEIO!</button>
+                {% endif %}
+            </form>
+        {% else %}
+            <h2>🎉 Resultado Final do Draft!</h2>
+            <div class="draft-results">
+                <ol>
+                    {% for jogador in draft_results %}
+                    <li><span class="draft-pick">{{ loop.index }}ª</span> {{ jogador }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+            <br>
+            <a href="{{ url_for('draft_lottery') }}" class="back-link">Realizar Novo Sorteio</a>
+        {% endif %}
+
+        <a href="{{ url_for('index') }}" class="back-link">← Voltar para o Ranking</a>
+    </div>
+</body>
+</html>

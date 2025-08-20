@@ -1,0 +1,37 @@
+[
+  {
+    "nome": "Champions C1",
+    "k_factor": 40,
+    "bonus_campeao": 75,
+    "bonus_vice": 40,
+    "bonus_semi": 20
+  },
+  {
+    "nome": "Série B",
+    "k_factor": 40,
+    "bonus_campeao": 75,
+    "bonus_vice": 40,
+    "bonus_semi": 20
+  },
+  {
+    "nome": "CdB B",
+    "k_factor": 25,
+    "bonus_campeao": 40,
+    "bonus_vice": 20,
+    "bonus_semi": 10
+  },
+  {
+    "nome": "UNICEF Cup",
+    "k_factor": 25,
+    "bonus_campeao": 40,
+    "bonus_vice": 20,
+    "bonus_semi": 10
+  },
+  {
+    "nome": "Amistoso",
+    "k_factor": 15,
+    "bonus_campeao": 0,
+    "bonus_vice": 0,
+    "bonus_semi": 0
+  }
+]
