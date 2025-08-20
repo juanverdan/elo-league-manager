@@ -1,6 +1,5 @@
 import json
 
-# --- DADOS DA SUA PLANILHA (sem mudanças) ---
 dados_historicos = [
     {'jogador': 'André', 'Champions C1': 1000, 'Série B': 1000, 'CdB B': 45, 'UNICEF Cup': 500},
     {'jogador': 'Valdo', 'Champions C1': None, 'Série B': 750, 'CdB B': 300, 'UNICEF Cup': 300},
@@ -23,11 +22,11 @@ dados_historicos = [
 
 # --- CONFIGURAÇÕES DA SIMULAÇÃO ---
 PESOS_TORNEIO = {'Champions C1': 1000, 'Série B': 1000, 'CdB B': 500, 'UNICEF Cup': 500}
-FATOR_DE_ESCALA = 0.25 # Mantemos o fator alto para um ranking bem distribuído
+FATOR_DE_ESCALA = 0.25 # Manter o fator alto para um ranking bem distribuído
 
 # --- NOVAS CONSTANTES ---
 RATING_INICIAL_ATIVO = 1500
-RATING_INICIAL_INATIVO = 1200 # O novo rating para jogadores que nunca participaram
+RATING_INICIAL_INATIVO = 1200 # O rating para jogadores que nunca participaram
 
 def simular():
     ratings = {}
@@ -47,7 +46,6 @@ def simular():
     ordem_torneios = ['Champions C1', 'Série B', 'CdB B', 'UNICEF Cup']
 
     for torneio in ordem_torneios:
-        # O resto da lógica da simulação continua a mesma...
         print(f"--- Simulando Torneio: {torneio} ---")
         participantes = []
         pontos_total = 0

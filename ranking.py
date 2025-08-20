@@ -8,7 +8,7 @@ K_FACTOR_DEFAULT = 32
 JOGOS_PROVISIONAIS = 5
 K_FACTOR_PROVISIONAL = 60
 RATING_INICIAL_ATIVO = 1500
-# Novo fator de ajuste: cada 1 ponto de "overall" de diferença equivale a 4 pontos de Elo
+# Fator de ajuste: cada 1 ponto de "overall" de diferença equivale a 4 pontos de Elo
 FATOR_FORCA_EQUIPE = 4
 
 # --- FUNÇÕES DE LÓGICA E DADOS ---
