@@ -9,39 +9,71 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --cor-fundo: #f0f2f5; --cor-container: #ffffff; --cor-texto-principal: #1c1e21;
-            --cor-texto-secundario: #606770; --cor-borda: #ddd; --cor-header-tabela: #1d4ed8;
-            --cor-gold: #ffc107; --cor-silver: #c0c0c0; --cor-bronze: #cd7f32;
+            --cor-fundo-escuro: #1a1a1d;
+            --cor-gradiente-escuro: #3d3d4d;
+            --cor-container-escuro: #2c2f33;
+            --cor-texto-principal-claro: #e0e0e0;
+            --cor-texto-secundario-claro: #a0a0a0;
+            --cor-borda-escura: #4a4a4a;
+
+            --cor-header-tabela: #2563eb;
+            --cor-gold: #ffc107;
+            --cor-silver: #c0c0c0;
+            --cor-bronze: #cd7f32;
         }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto-principal); margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: 20px auto; background: var(--cor-container); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1, h2 { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-top: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--cor-fundo-escuro);
+            background-image: linear-gradient(160deg, var(--cor-fundo-escuro) 0%, var(--cor-gradiente-escuro) 100%);
+            color: var(--cor-texto-principal-claro);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: var(--cor-container-escuro);
+            color: var(--cor-texto-principal-claro);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            border: 1px solid var(--cor-borda-escura);
+        }
+        h1, h2 {
+            text-align: center;
+            border-bottom: 1px solid var(--cor-borda-escura);
+            padding-bottom: 15px;
+            margin-top: 0;
+            color: var(--cor-texto-principal-claro);
+        }
         .event-list { list-style: none; padding: 0; }
-        .event-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; border-bottom: 1px solid #f0f0f0; }
+        .event-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 10px;
+            border-bottom: 1px solid var(--cor-borda-escura);
+        }
         .event-item:last-child { border-bottom: none; }
         .event-name { font-weight: 500; font-size: 18px; }
-        .event-placement { font-weight: bold; padding: 6px 12px; border-radius: 16px; color: var(--cor-texto-principal); background-color: #e9ecef; white-space: nowrap; }
-        .placement-1st { background-color: var(--cor-gold); color: #333; }
-        .placement-2nd { background-color: var(--cor-silver); color: #333; }
-        .placement-bronze { background-color: var(--cor-bronze); color: white; }
+        .event-placement {
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 16px;
+            color: var(--cor-texto-principal-claro);
+            background-color: var(--cor-borda-escura); /* Fundo padrão para posições não premiadas */
+            white-space: nowrap;
+        }
+        .placement-1st { background-color: var(--cor-gold); color: #1c1e21; }
+        .placement-2nd { background-color: var(--cor-silver); color: #1c1e21; }
+        .placement-bronze { background-color: var(--cor-bronze); color: var(--cor-texto-principal-claro); }
         .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
         
-        .content-wrapper {
-            display: flex;
-            gap: 30px;
-            align-items: baseline;
-            margin-top: 30px;
-        }
-        .chart-container {
-            flex: 2; 
-            min-width: 0;
-        }
-        .achievements-container {
-            flex: 1;
-        }
-        .achievements-container h2 {
-             margin-top: 0;
-        }
+        .content-wrapper { display: flex; gap: 30px; align-items: baseline; margin-top: 30px; }
+        .chart-container { flex: 2; min-width: 0; }
+        .achievements-container { flex: 1; }
+        .achievements-container h2 { margin-top: 0; }
         
         .profile-header { display: flex; flex-direction: column; align-items: center; gap: 10px; }
         .profile-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid var(--cor-header-tabela); }
@@ -89,7 +121,12 @@
     </div>
 
     <script>
+        // Configuração do Chart.js para o tema escuro
+        Chart.defaults.color = 'rgba(224, 224, 224, 0.8)'; // Cor padrão do texto (eixos, etc.)
+        Chart.defaults.borderColor = 'rgba(224, 224, 224, 0.2)'; // Cor das linhas do grid
+
         const ctx = document.getElementById('eloChart');
+
         new Chart(ctx, {
             type: 'line',
             data: {
@@ -98,14 +135,21 @@
                     label: 'Rating Elo',
                     data: {{ dados_grafico | tojson }},
                     fill: true,
-                    borderColor: 'rgb(29, 78, 216)',
-                    backgroundColor: 'rgba(29, 78, 216, 0.1)',
-                    tension: 0.1
+                    borderColor: '#2563eb', // Azul vibrante da nossa paleta
+                    backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                    tension: 0.1,
+                    pointBackgroundColor: '#2563eb',
+                    pointHoverRadius: 7,
+                    pointHoverBackgroundColor: '#fff'
                 }]
             },
             options: {
-                scales: { y: { beginAtZero: false } },
-                plugins: { legend: { display: false } }
+                scales: {
+                    y: { beginAtZero: false }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
             }
         });
     </script>

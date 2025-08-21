@@ -7,3 +7,9 @@ __pycache__/
 
 # Imagens enviadas pelos usuários
 static/uploads/
+
+# Ignora todo o conteúdo da pasta de avatares...
+static/images/avatars/*
+
+# ...EXCETO o avatar padrão, que é parte do app.
+!static/images/avatars/default.png
