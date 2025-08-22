@@ -18,7 +18,7 @@ Uma plataforma avançada de gerenciamento de ligas construída com Python/Flask.
 <br>
 
 <p align="center">
-  <img alt="projeto landing-page" src=".github/preview.jpg" width="100%">
+  <img alt="projeto landing-page" src=".static/images/avatars/preview.png" width="100%">
 </p>
 
 ## 🚀 Tecnologias
@@ -35,5 +35,3 @@ Esse projeto foi desenvolvido com as seguintes tecnologias:
 
 Esse projeto surgiu de uma brincadeira que tenho com meus amigos de disputar ligas em alguns jogos de futebol online, pensando em tornar a brincadeira mais realista, criei um sistema de ranking onde cada vitória importa, onde pode-se até mesmo criar draft para picks, gerar jornais via PDF, ter uma página exclusiva de cada jogador com suas conquistas.
 
-
-Feito por Juan Verdan através das aulas da RocketSeat!
