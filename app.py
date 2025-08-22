@@ -11,18 +11,17 @@ from unidecode import unidecode
 from weasyprint import HTML
 from ranking import (
     registrar_partida, contar_partidas_jogadas, aplicar_bonus_campeonato,
-    carregar_ratings, salvar_ratings,
+    carregar_ratings, salvar_ratings, carregar_regras_torneios, carregar_historico,
     JOGOS_PROVISIONAIS, RATING_INICIAL_ATIVO, RATING_INICIAL_INATIVO
 )
 
 app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta_pode_ser_qualquer_coisa_aleatoria'
-UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static/uploads')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static/uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-# MUDE ESTA SENHA PARA ALGO SEGURO!
-ADMIN_PASSWORD = '123' 
+ADMIN_PASSWORD = '123'
 
-# --- DECORATOR DE LOGIN OBRIGATÓRIO ---
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
@@ -32,32 +31,21 @@ def login_required(view):
         return view(**kwargs)
     return wrapped_view
 
-# --- FUNÇÕES DE CARREGAMENTO ---
-def carregar_regras_torneios():
-    try:
-        with open('torneios.json', 'r', encoding='utf-8') as f: return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError): return []
-
-def carregar_historico():
-    try:
-        with open('ranking_history.json', 'r', encoding='utf-8') as f: return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError): return []
-
 def carregar_dados_completos():
-    try:
-        with open('ratings.json', 'r', encoding='utf-8') as f: ratings_dict = json.load(f)
-    except FileNotFoundError: return [], []
-    
-    historico = carregar_historico();posicao_anterior = {}
+    ratings_dict = carregar_ratings()
+    historico = carregar_historico()
+    posicao_anterior = {}
     if historico:
         ultimo_ranking_salvo = historico[-1]['ratings']
         ranking_antigo_ordenado = sorted(ultimo_ranking_salvo.items(), key=lambda item: item[1], reverse=True)
-        for i, (jogador, _) in enumerate(ranking_antigo_ordenado):posicao_anterior[jogador] = i + 1
-            
+        for i, (jogador, _) in enumerate(ranking_antigo_ordenado):
+            posicao_anterior[jogador] = i + 1
     ranking_atual_ordenado = sorted(ratings_dict.items(), key=lambda item: item[1], reverse=True)
-    contagem_jogos = contar_partidas_jogadas();forma_recente = defaultdict(list)
+    contagem_jogos = contar_partidas_jogadas()
+    forma_recente = defaultdict(list)
+    caminho_partidas = os.path.join(BASE_DIR, 'partidas.csv')
     try:
-        with open('partidas.csv', 'r', encoding='utf-8') as f:
+        with open(caminho_partidas, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for partida in reader:
                 res_a = float(partida['resultado_a'])
@@ -65,17 +53,16 @@ def carregar_dados_completos():
                 elif res_a == 0.5: forma_recente[partida['jogador_a']].append('D'); forma_recente[partida['jogador_b']].append('D')
                 else: forma_recente[partida['jogador_a']].append('L'); forma_recente[partida['jogador_b']].append('W')
     except FileNotFoundError: pass
-
     ranking_final = []
     for i, (jogador, rating_atual) in enumerate(ranking_atual_ordenado):
-        posicao_atual = i + 1; pos_antiga = posicao_anterior.get(jogador, posicao_atual);status = 'same'; diff = 0
+        posicao_atual = i + 1
+        pos_antiga = posicao_anterior.get(jogador, posicao_atual)
+        status = 'same'; diff = 0
         if pos_antiga > posicao_atual: status = 'up'; diff = pos_antiga - posicao_atual
         elif pos_antiga < posicao_atual: status = 'down'; diff = posicao_atual - pos_antiga
         jogos_do_jogador = contagem_jogos.get(jogador, 0)
-        
         nome_sem_acento = unidecode(jogador)
         avatar_filename = nome_sem_acento.lower().replace(' ', '_') + '.png'
-
         ranking_final.append({
             'nome': jogador, 'pontos': rating_atual,'avatar_filename': avatar_filename,
             'mudanca_pontos': rating_atual - RATING_INICIAL_ATIVO if jogos_do_jogador > 0 else 0,
@@ -96,8 +83,9 @@ def index():
 @app.route('/player/<nome_do_jogador>')
 def player_profile(nome_do_jogador):
     historico_conquistas = []
+    caminho_resultados = os.path.join(BASE_DIR, 'resultados_torneios.csv')
     try:
-        with open('resultados_torneios.csv', 'r', encoding='utf-8') as f:
+        with open(caminho_resultados, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 if row['jogador'] == nome_do_jogador:
@@ -110,29 +98,24 @@ def player_profile(nome_do_jogador):
             timestamp = datetime.fromisoformat(snapshot['timestamp']).strftime('%d/%m %H:%M')
             labels_grafico.append(timestamp)
             dados_grafico.append(snapshot['ratings'][nome_do_jogador])
-    ratings_atuais = carregar_dados_completos()[0]
-    for jogador_data in ratings_atuais:
+    ranking_atual, _ = carregar_dados_completos()
+    for jogador_data in ranking_atual:
         if jogador_data['nome'] == nome_do_jogador:
             labels_grafico.append("Agora")
             dados_grafico.append(jogador_data['pontos'])
             break
-    nome_sem_acento = unidecode(nome_do_jogador)
-    avatar_filename = nome_sem_acento.lower().replace(' ', '_') + '.png'
     h2h_stats = defaultdict(lambda: {'V': 0, 'E': 0, 'D': 0})
     all_matches_details = []
+    caminho_partidas = os.path.join(BASE_DIR, 'partidas.csv')
     try:
-        with open('partidas.csv', 'r', encoding='utf-8') as f:
+        with open(caminho_partidas, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for partida in reader:
-                partida_detalhes = {
-                    'torneio': partida.get('torneio'), 'placar_a': partida.get('placar_a', ''),
-                    'placar_b': partida.get('placar_b', ''), 'fase': partida.get('fase', '')
-                }
+                partida_detalhes = { 'torneio': partida.get('torneio'), 'placar_a': partida.get('placar_a', ''), 'placar_b': partida.get('placar_b', ''), 'fase': partida.get('fase', '') }
                 if partida['jogador_a'] == nome_do_jogador:
                     oponente = partida['jogador_b']
                     resultado_jogador = float(partida['resultado_a'])
-                    partida_detalhes['oponente'] = oponente
-                    partida_detalhes['resultado'] = resultado_jogador
+                    partida_detalhes['oponente'] = oponente; partida_detalhes['resultado'] = resultado_jogador
                     all_matches_details.append(partida_detalhes)
                     if resultado_jogador == 1: h2h_stats[oponente]['V'] += 1
                     elif resultado_jogador == 0.5: h2h_stats[oponente]['E'] += 1
@@ -140,13 +123,14 @@ def player_profile(nome_do_jogador):
                 elif partida['jogador_b'] == nome_do_jogador:
                     oponente = partida['jogador_a']
                     resultado_jogador = 1 - float(partida['resultado_a']) if partida['resultado_a'] != '0.5' else 0.5
-                    partida_detalhes['oponente'] = oponente
-                    partida_detalhes['resultado'] = resultado_jogador
+                    partida_detalhes['oponente'] = oponente; partida_detalhes['resultado'] = resultado_jogador
                     all_matches_details.append(partida_detalhes)
                     if resultado_jogador == 1: h2h_stats[oponente]['V'] += 1
                     elif resultado_jogador == 0.5: h2h_stats[oponente]['E'] += 1
                     else: h2h_stats[oponente]['D'] += 1
     except FileNotFoundError: pass
+    nome_sem_acento = unidecode(nome_do_jogador)
+    avatar_filename = nome_sem_acento.lower().replace(' ', '_') + '.png'
     return render_template(
         'player.html', jogador_nome=nome_do_jogador, historico=historico_conquistas,
         labels_grafico=labels_grafico, dados_grafico=dados_grafico, avatar_filename=avatar_filename,
@@ -203,7 +187,7 @@ def gerenciar_torneios():
             "bonus_quarto": int(request.form.get('bonus_quarto', 0)) if tipo_torneio == 'Pontos Corridos' else 0
         }
         regras_atuais.append(novo_torneio)
-        with open('torneios.json', 'w', encoding='utf-8') as f:
+        with open(os.path.join(BASE_DIR, 'torneios.json'), 'w', encoding='utf-8') as f:
             json.dump(regras_atuais, f, indent=2, ensure_ascii=False)
         flash(f"Torneio '{novo_torneio['nome']}' adicionado com sucesso!", 'success')
         return redirect(url_for('gerenciar_torneios'))
@@ -289,8 +273,9 @@ def draft_lottery():
 def jornal_liga():
     _, todos_jogadores = carregar_dados_completos()
     todas_as_partidas = []
+    caminho_partidas = os.path.join(BASE_DIR, 'partidas.csv')
     try:
-        with open('partidas.csv', 'r', encoding='utf-8') as f:
+        with open(caminho_partidas, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for i, row in enumerate(reader):
                 row['id'] = i
@@ -323,11 +308,10 @@ def jornal_liga():
                 "torneio": p['torneio'], "vencedor": vencedor, "perdedor": perdedor,
                 "resumo": resumo_partida, "imagem_path": imagem_path
             })
-        
         if 'incluir_ranking_elo' in request.form:
             ranking, _ = carregar_dados_completos()
             for jogador in ranking:
-                avatar_abs_path = os.path.join(app.config['UPLOAD_FOLDER'].replace('uploads', 'avatars'), jogador['avatar_filename'])
+                avatar_abs_path = os.path.join(BASE_DIR, 'static/images/avatars', jogador['avatar_filename'])
                 jogador['avatar_path'] = f"file:///{avatar_abs_path}"
             dados_jornal['ranking_elo'] = ranking
         if 'incluir_classificacao' in request.form:
@@ -338,7 +322,7 @@ def jornal_liga():
                 if jogadores_classificacao[i] and pontos_classificacao[i]:
                     nome_sem_acento = unidecode(jogadores_classificacao[i])
                     avatar_filename = nome_sem_acento.lower().replace(' ', '_') + '.png'
-                    avatar_abs_path = os.path.join(app.config['UPLOAD_FOLDER'].replace('uploads', 'avatars'), avatar_filename)
+                    avatar_abs_path = os.path.join(BASE_DIR, 'static/images/avatars', avatar_filename)
                     tabela.append({
                         'jogador': jogadores_classificacao[i], 'pontos': int(pontos_classificacao[i]),
                         'avatar_path': f"file:///{avatar_abs_path}"
@@ -349,12 +333,12 @@ def jornal_liga():
             }
         
         html_para_pdf = render_template('jornal_pdf_template.html', **dados_jornal)
-        pdf = HTML(string=html_para_pdf).write_pdf()
+        pdf = HTML(string=html_para_pdf, base_url=BASE_DIR).write_pdf()
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = f'inline; filename=jornal_liga_edicao_{dados_jornal["edicao"]}.pdf'
         return response
-    return render_template('jornal_editor.html', partidas_recentes=reversed(partidas_para_exibir), todos_jogadores=jogadores)
+    return render_template('jornal_editor.html', partidas_recentes=reversed(partidas_para_exibir), todos_jogadores=todos_jogadores)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
