@@ -1,25 +1,6 @@
-jogador_a,jogador_b,resultado_a,torneio
-André,Oponente_Simulado,1,UNICEF Cup
-André,Oponente_Simulado,1,UNICEF Cup
-André,Oponente_Simulado,1,UNICEF Cup
-André,Oponente_Simulado,1,UNICEF Cup
-Valdo,Oponente_Simulado,1,UNICEF Cup
-Valdo,Oponente_Simulado,1,UNICEF Cup
-Valdo,Oponente_Simulado,0,UNICEF Cup
-Hericles,Oponente_Simulado,1,UNICEF Cup
-Hericles,Oponente_Simulado,0,UNICEF Cup
-Ramon,Oponente_Simulado,0,UNICEF Cup
-Daniel Campos,Oponente_Simulado,0,UNICEF Cup
-Indiano,Oponente_Simulado,1,UNICEF Cup
-Indiano,Oponente_Simulado,0,UNICEF Cup
-Davi,Oponente_Simulado,1,UNICEF Cup
-Davi,Oponente_Simulado,0,UNICEF Cup
-Tiago,Oponente_Simulado,1,UNICEF Cup
-Tiago,Oponente_Simulado,0,UNICEF Cup
-Samuel,Oponente_Simulado,0,UNICEF Cup
-Lavieri,Oponente_Simulado,0,UNICEF Cup
-Temis,Alex,0,UNICEF Cup
-Wesley,Oponente_Simulado,1,UNICEF Cup
-Wesley,Oponente_Simulado,0,UNICEF Cup
-Ledin,Oponente_Simulado,0,UNICEF Cup
-Alex Markes,Oponente_Simulado,0,UNICEF Cup
+jogador_a,jogador_b,resultado_a,torneio,placar_a,placar_b,fase
+André,Romário,1,Champions C1,3,2,Final
+André,Valdo,1,UNICEF Cup,2,1,Final
+André,Tiago,1,UNICEF Cup,2,1,Semis
+Héricles,Valdo,0,CDB B,3,1,Final
+Héricles,Valdo,1,UNICEF Cup,0,2,Semi

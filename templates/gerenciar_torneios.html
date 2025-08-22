@@ -9,50 +9,51 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         :root {
-            --cor-fundo: #f0f2f5; --cor-container: #ffffff; --cor-texto-principal: #1c1e21;
-            --cor-texto-secundario: #606770; --cor-borda: #ddd; --cor-header-tabela: #1d4ed8;
-            --cor-botao-add: #28a745; --cor-botao-add-hover: #218838;
+            --cor-fundo-escuro: #1a1a1d; --cor-container-escuro: #2c2f33; --cor-texto-principal-claro: #e0e0e0;
+            --cor-texto-secundario-claro: #a0a0a0; --cor-borda-escura: #4a4a4a; --cor-header-tabela: #2563eb;
         }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto-principal); margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: 20px auto; background: var(--cor-container); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1, h2 { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-top: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo-escuro); color: var(--cor-texto-principal-claro); margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 20px auto; background: var(--cor-container-escuro); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid var(--cor-borda-escura); }
+        h1, h2 { text-align: center; border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; margin-top: 0; }
+        .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid var(--cor-borda-escura); }
         th { background-color: var(--cor-header-tabela); color: white; font-size: 14px; text-transform: uppercase; }
-        form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        form { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: end;}
         .form-group { display: flex; flex-direction: column; }
         .full-width { grid-column: 1 / -1; }
-        label { margin-bottom: 5px; color: var(--cor-texto-secundario); font-weight: 500; }
-        input { padding: 10px; border-radius: 6px; border: 1px solid var(--cor-borda); font-size: 16px; width: 100%; box-sizing: border-box; }
-        button { padding: 12px; border-radius: 6px; border: none; font-size: 16px; color: white; font-weight: bold; cursor: pointer; transition: background-color 0.2s; }
-        .btn-add { background-color: var(--cor-botao-add); }
-        .btn-add:hover { background-color: var(--cor-botao-add-hover); }
-        .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
+        label { margin-bottom: 5px; color: var(--cor-texto-secundario-claro); font-weight: 500; text-align: left;}
+        input, select, button { padding: 12px; border-radius: 6px; border: 1px solid var(--cor-borda-escura); font-size: 16px; width: 100%; box-sizing: border-box; background-color: #3d3d4d; color: var(--cor-texto-principal-claro); font-family: 'Inter', sans-serif;}
+        button { background-color: #28a745; color: white; font-weight: bold; cursor: pointer; border: none; transition: background-color 0.2s; }
+        button:hover { background-color: #218838; }
+        .flash-messages { list-style: none; padding: 0; margin-bottom: 20px; }
+        .flash { padding: 15px; border-radius: 6px; color: white; font-weight: 500; text-align: center; }
+        .flash.success { background-color: #28a745; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>⚙️ Gerenciar Torneios</h1>
         
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}<ul class="flash-messages">{% for c, m in messages %}<li class="flash {{ c }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+        {% endwith %}
+
         <h2>Torneios Existentes</h2>
         <table>
             <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>Peso Elo (K)</th>
-                    <th>Bônus Campeão</th>
-                    <th>Bônus Vice</th>
-                    <th>Bônus Semi</th>
-                </tr>
+                <tr><th>Nome</th><th>Tipo</th><th>Peso Elo (K)</th><th>Bônus 1º</th><th>Bônus 2º</th><th>Bônus 3º/4º</th><th>Bônus 4º</th></tr>
             </thead>
             <tbody>
                 {% for torneio in torneios %}
                 <tr>
                     <td>{{ torneio.nome }}</td>
+                    <td>{{ torneio.tipo }}</td>
                     <td>{{ torneio.k_factor }}</td>
                     <td>{{ torneio.bonus_campeao }}</td>
                     <td>{{ torneio.bonus_vice }}</td>
                     <td>{{ torneio.bonus_semi }}</td>
+                    <td>{{ torneio.bonus_quarto or 'N/A' }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -60,32 +61,67 @@
 
         <h2>Adicionar Novo Torneio</h2>
         <form action="{{ url_for('gerenciar_torneios') }}" method="post">
-            <div class="form-group full-width">
+            <div class="form-group">
                 <label for="nome">Nome do Torneio</label>
                 <input type="text" name="nome" id="nome" required>
             </div>
             <div class="form-group">
-                <label for="k_factor">Peso Elo (K-Factor)</label>
-                <input type="number" name="k_factor" id="k_factor" value="25" required>
+                <label for="tipo">Tipo de Torneio</label>
+                <select name="tipo" id="tipo" onchange="toggleBonusFields()">
+                    <option value="Mata-Mata">Mata-Mata</option>
+                    <option value="Pontos Corridos">Pontos Corridos</option>
+                </select>
             </div>
-            <div class="form-group">
-                <label for="bonus_campeao">Bônus Campeão</label>
-                <input type="number" name="bonus_campeao" id="bonus_campeao" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="bonus_vice">Bônus Vice</label>
-                <input type="number" name="bonus_vice" id="bonus_vice" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="bonus_semi">Bônus Semifinalista</label>
-                <input type="number" name="bonus_semi" id="bonus_semi" value="0" required>
+            <div class="form-group full-width" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                <div>
+                    <label for="k_factor">Peso Elo (K)</label>
+                    <input type="number" name="k_factor" id="k_factor" value="25" required>
+                </div>
+                <div>
+                    <label id="label_bonus_1" for="bonus_campeao">Bônus Campeão</label>
+                    <input type="number" name="bonus_campeao" id="bonus_campeao" value="0" required>
+                </div>
+                <div>
+                    <label id="label_bonus_2" for="bonus_vice">Bônus Vice</label>
+                    <input type="number" name="bonus_vice" id="bonus_vice" value="0" required>
+                </div>
+                <div id="bonus_field_3">
+                    <label id="label_bonus_3" for="bonus_semi">Bônus Semifinalistas</label>
+                    <input type="number" name="bonus_semi" id="bonus_semi" value="0" required>
+                </div>
+                <div id="bonus_field_4" style="display: none;">
+                    <label for="bonus_quarto">Bônus 4º Lugar</label>
+                    <input type="number" name="bonus_quarto" id="bonus_quarto" value="0">
+                </div>
             </div>
             <div class="form-group full-width">
-                <button type="submit" class="btn-add">Adicionar Torneio</button>
+                <button type="submit">Adicionar Torneio</button>
             </div>
         </form>
 
         <a href="{{ url_for('index') }}" class="back-link">← Voltar para o Ranking</a>
     </div>
+    <script>
+        function toggleBonusFields() {
+            const tipo = document.getElementById('tipo').value;
+            const field4 = document.getElementById('bonus_field_4');
+            const label1 = document.getElementById('label_bonus_1');
+            const label2 = document.getElementById('label_bonus_2');
+            const label3 = document.getElementById('label_bonus_3');
+
+            if (tipo === 'Pontos Corridos') {
+                label1.innerText = 'Bônus 1º Lugar';
+                label2.innerText = 'Bônus 2º Lugar';
+                label3.innerText = 'Bônus 3º Lugar';
+                field4.style.display = 'block';
+            } else { // Mata-Mata
+                label1.innerText = 'Bônus Campeão';
+                label2.innerText = 'Bônus Vice';
+                label3.innerText = 'Bônus Semifinalistas';
+                field4.style.display = 'none';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', toggleBonusFields);
+    </script>
 </body>
 </html>

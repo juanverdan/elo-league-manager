@@ -8,7 +8,7 @@ K_FACTOR_DEFAULT = 32
 JOGOS_PROVISIONAIS = 5
 K_FACTOR_PROVISIONAL = 60
 RATING_INICIAL_ATIVO = 1500
-# Fator de ajuste: cada 1 ponto de "overall" de diferença equivale a 4 pontos de Elo
+RATING_INICIAL_INATIVO = 1200
 FATOR_FORCA_EQUIPE = 4
 
 # --- FUNÇÕES DE LÓGICA E DADOS ---
@@ -47,12 +47,15 @@ def atualizar_ratings(rating_a, rating_b, resultado_a, k_a, k_b, prob_a_vence):
     novo_rating_b = rating_b + k_b * ((1 - resultado_a) - (1 - prob_a_vence))
     return round(novo_rating_a), round(novo_rating_b)
 
-def logar_partida(j_a, j_b, res_a, torn):
+def logar_partida(j_a, j_b, res_a, torn, placar_a, placar_b, fase):
     header = not os.path.exists('partidas.csv') or os.path.getsize('partidas.csv') == 0
     with open('partidas.csv', 'a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        if header: writer.writerow(['jogador_a', 'jogador_b', 'resultado_a', 'torneio'])
-        writer.writerow([j_a, j_b, res_a, torn])
+        if header:
+            # Cabeçalho atualizado
+            writer.writerow(['jogador_a', 'jogador_b', 'resultado_a', 'torneio', 'placar_a', 'placar_b', 'fase'])
+        # Escreve os novos dados
+        writer.writerow([j_a, j_b, res_a, torn, placar_a, placar_b, fase])
 
 def salvar_historico(ratings_antigos):
     try:
@@ -61,7 +64,7 @@ def salvar_historico(ratings_antigos):
     historico.append({'timestamp': datetime.now().isoformat(), 'ratings': ratings_antigos})
     with open('ranking_history.json', 'w', encoding='utf-8') as f: json.dump(historico, f, indent=2, ensure_ascii=False)
 
-def registrar_partida(jogador_a, jogador_b, resultado_a, torneio, forca_time_a, forca_time_b):
+def registrar_partida(jogador_a, jogador_b, resultado_a, torneio, forca_time_a, forca_time_b, placar_a, placar_b, fase):
     regras_dos_torneios = carregar_regras_torneios()
     ratings = carregar_ratings()
     salvar_historico(ratings)
@@ -70,10 +73,8 @@ def registrar_partida(jogador_a, jogador_b, resultado_a, torneio, forca_time_a, 
     rating_real_a = ratings[jogador_a]
     rating_real_b = ratings[jogador_b]
 
-    # --- LÓGICA DO RATING VIRTUAL ---
     diferenca_forca = forca_time_a - forca_time_b
     ajuste_elo = diferenca_forca * FATOR_FORCA_EQUIPE
-    
     rating_virtual_a = rating_real_a + ajuste_elo
     rating_virtual_b = rating_real_b - ajuste_elo
 
@@ -84,35 +85,38 @@ def registrar_partida(jogador_a, jogador_b, resultado_a, torneio, forca_time_a, 
     k_a = K_FACTOR_PROVISIONAL if jogos_a < JOGOS_PROVISIONAIS else k_base
     k_b = K_FACTOR_PROVISIONAL if jogos_b < JOGOS_PROVISIONAIS else k_base
     
-    print(f"\nRegistrando partida: {jogador_a} (Time {forca_time_a}) vs {jogador_b} (Time {forca_time_b})")
-    print(f"Rating Real: {rating_real_a} vs {rating_real_b}")
-    print(f"Ajuste pela força da equipe: {ajuste_elo:+} Elo")
-    print(f"Rating Virtual para este jogo: {rating_virtual_a:.0f} vs {rating_virtual_b:.0f}")
-
     prob_a_vence = calcular_probabilidade_vitoria(rating_virtual_a, rating_virtual_b)
     novo_rating_a, novo_rating_b = atualizar_ratings(rating_real_a, rating_real_b, resultado_a, k_a, k_b, prob_a_vence)
 
     ratings[jogador_a] = novo_rating_a
     ratings[jogador_b] = novo_rating_b
     salvar_ratings(ratings)
-    logar_partida(jogador_a, jogador_b, resultado_a, torneio)
+    # Passa os novos dados para a função de log
+    logar_partida(jogador_a, jogador_b, resultado_a, torneio, placar_a, placar_b, fase)
 
-    print("--- Ratings Atualizados ---")
-    print(f"{jogador_a}: {rating_real_a} -> {novo_rating_a} ({novo_rating_a - rating_real_a:+})")
-    print(f"{jogador_b}: {rating_real_b} -> {novo_rating_b} ({novo_rating_b - rating_real_b:+})")
-
-def aplicar_bonus_campeonato(torneio_nome, data_fim, campeao, vice, semi1, semi2):
+def aplicar_bonus_campeonato(torneio_nome, data_fim, campeao, vice, semi1, semi2, terceiro=None, quarto=None):
     regras_torneios = carregar_regras_torneios()
     ratings = carregar_ratings()
     torneio_regras = regras_torneios.get(torneio_nome)
     if not torneio_regras: return
     salvar_historico(ratings)
-    vencedores = {
-        campeao: ('1º Lugar', torneio_regras['bonus_campeao']),
-        vice: ('2º Lugar', torneio_regras['bonus_vice']),
-        semi1: ('3º-4º Lugar', torneio_regras['bonus_semi']),
-        semi2: ('3º-4º Lugar', torneio_regras['bonus_semi'])
-    }
+
+    vencedores = {}
+    if torneio_regras.get('tipo') == 'Pontos Corridos':
+        vencedores = {
+            campeao: ('1º Lugar', torneio_regras['bonus_campeao']),
+            vice: ('2º Lugar', torneio_regras['bonus_vice']),
+            terceiro: ('3º Lugar', torneio_regras.get('bonus_semi', 0)), # Usa o bonus_semi para o 3º
+            quarto: ('4º Lugar', torneio_regras.get('bonus_quarto', 0)) # Usa o bonus_quarto para o 4º
+        }
+    else: # Mata-Mata
+        vencedores = {
+            campeao: ('Campeão', torneio_regras['bonus_campeao']),
+            vice: ('Vice-Campeão', torneio_regras['bonus_vice']),
+            semi1: ('Semifinalista', torneio_regras.get('bonus_semi', 0)),
+            semi2: ('Semifinalista', torneio_regras.get('bonus_semi', 0))
+        }
+
     for jogador, (colocacao, bonus) in vencedores.items():
         if jogador and jogador in ratings:
             ratings[jogador] += bonus
@@ -122,5 +126,5 @@ def aplicar_bonus_campeonato(torneio_nome, data_fim, campeao, vice, semi1, semi2
         writer = csv.writer(f)
         if header: writer.writerow(['jogador', 'torneio', 'colocacao', 'data'])
         for jogador, (colocacao, bonus) in vencedores.items():
-            if jogador:
+            if jogador and jogador != "N/A":
                 writer.writerow([jogador, torneio_nome, colocacao, data_fim])

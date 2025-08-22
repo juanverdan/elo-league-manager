@@ -9,23 +9,28 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         :root {
-            --cor-fundo: #f0f2f5; --cor-container: #ffffff; --cor-texto-principal: #1c1e21;
-            --cor-texto-secundario: #606770; --cor-borda: #ddd; --cor-header-tabela: #1d4ed8;
+            --cor-fundo-escuro: #1a1a1d; --cor-container-escuro: #2c2f33; --cor-texto-principal-claro: #e0e0e0;
+            --cor-texto-secundario-claro: #a0a0a0; --cor-borda-escura: #4a4a4a; --cor-header-tabela: #2563eb;
         }
-        body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto-principal); margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1, h2 { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-top: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo-escuro); color: var(--cor-texto-principal-claro); margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 20px auto; background: var(--cor-container-escuro); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid var(--cor-borda-escura); }
+        h1, h2 { text-align: center; border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; margin-top: 0; margin-bottom: 25px;}
         .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
         .form-group { display: flex; flex-direction: column; margin-bottom: 20px; }
-        label { margin-bottom: 5px; color: var(--cor-texto-secundario); font-weight: 500; }
-        input, textarea, button { padding: 12px; border-radius: 6px; border: 1px solid var(--cor-borda); font-size: 16px; width: 100%; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        label { margin-bottom: 5px; color: var(--cor-texto-secundario-claro); font-weight: 500; }
+        input, textarea, button, select { padding: 12px; border-radius: 6px; border: 1px solid var(--cor-borda-escura); font-size: 16px; width: 100%; box-sizing: border-box; background-color: #3d3d4d; color: var(--cor-texto-principal-claro); font-family: 'Inter', sans-serif; }
         textarea { resize: vertical; }
         button { background-color: #c82333; color: white; font-weight: bold; cursor: pointer; border: none; transition: background-color 0.2s; }
         button:hover { background-color: #a21927; }
-        .match-selection-item { background: #f5f6f7; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .match-selection-item { background: #3d3d4d; border: 1px solid var(--cor-borda-escura); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
         .match-label { display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 18px; }
         .match-summary { margin-top: 10px; }
         input[type="file"] { padding: 5px; }
+        .hidden { display: none; }
+        .classification-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .classification-row select { flex: 3; }
+        .classification-row input { flex: 1; }
+        #classification-list-container button { font-size: 14px; padding: 8px 12px; width: auto; background-color: #007bff; }
     </style>
 </head>
 <body>
@@ -42,7 +47,7 @@
                 <textarea name="editorial" id="editorial" rows="3" required placeholder="Ex: Uma rodada de tirar o fôlego que redefiniu o topo da tabela!"></textarea>
             </div>
             
-            <h2>2. Escreva sobre as Partidas da Rodada</h2>
+            <h2>2. Matérias da Rodada</h2>
             {% for partida in partidas_recentes %}
             <div class="match-selection-item">
                 <label class="match-label">
@@ -56,10 +61,85 @@
                 </div>
             </div>
             {% endfor %}
+
+            <h2>3. Módulos Opcionais para o Final do Jornal</h2>
+            <div class="match-selection-item">
+                <label class="match-label">
+                    <input type="checkbox" name="incluir_ranking_elo" value="true" style="width: auto;">
+                    Incluir Ranking de Treinadores (ELO Geral)
+                </label>
+            </div>
+            <div class="match-selection-item">
+                <label class="match-label">
+                    <input type="checkbox" name="incluir_classificacao" id="check_classificacao" value="true" style="width: auto;" onchange="toggleClassification()">
+                    Incluir Classificação do Campeonato
+                </label>
+                <div id="classificacao-container" class="hidden" style="margin-top: 15px;">
+                    <div class="form-group">
+                        <label for="nome_campeonato">Nome do Campeonato (Ex: Série B - Rodada 5)</label>
+                        <input type="text" name="nome_campeonato" placeholder="Série B - Rodada 5">
+                    </div>
+                    <hr style="border-color: var(--cor-borda-escura); margin-bottom: 15px;">
+                    <div id="classification-list-container">
+                        <label>Jogadores e Pontos</label>
+                        <div id="classification-list">
+                            </div>
+                        <button type="button" onclick="addPlayerRow()">+ Adicionar Jogador</button>
+                    </div>
+                </div>
+            </div>
             
-            <button type="submit">Gerar Jornal em PDF</button>
+            <button type="submit" style="margin-top: 20px;">Gerar Jornal em PDF</button>
         </form>
         <a href="{{ url_for('index') }}" class="back-link">← Voltar para o Ranking</a>
     </div>
+
+    <script>
+        const todosJogadores = {{ todos_jogadores | tojson }};
+
+        function toggleClassification() {
+            const container = document.getElementById('classificacao-container');
+            if (document.getElementById('check_classificacao').checked) {
+                container.classList.remove('hidden');
+                if (document.getElementById('classification-list').children.length === 0) {
+                    addPlayerRow();
+                }
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function addPlayerRow() {
+            const list = document.getElementById('classification-list');
+            const newRow = document.createElement('div');
+            newRow.className = 'classification-row';
+            
+            const select = document.createElement('select');
+            select.name = 'classificacao_jogador';
+            
+            // Adiciona uma opção vazia
+            const placeholder = document.createElement('option');
+            placeholder.value = "";
+            placeholder.innerText = "Selecione um jogador";
+            select.appendChild(placeholder);
+
+            todosJogadores.forEach(jogador => {
+                const option = document.createElement('option');
+                option.value = jogador;
+                option.innerText = jogador;
+                select.appendChild(option);
+            });
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.name = 'classificacao_pontos';
+            input.placeholder = 'Pontos';
+            input.value = '0';
+
+            newRow.appendChild(select);
+            newRow.appendChild(input);
+            list.appendChild(newRow);
+        }
+    </script>
 </body>
 </html>

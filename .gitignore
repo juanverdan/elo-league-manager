@@ -13,3 +13,4 @@ static/images/avatars/*
 
 # ...EXCETO o avatar padrão, que é parte do app.
 !static/images/avatars/default.png
+!static/images/avatars/preview.png

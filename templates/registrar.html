@@ -9,19 +9,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         :root {
-            --cor-fundo: #f0f2f5; --cor-container: #ffffff; --cor-texto-principal: #1c1e21;
-            --cor-texto-secundario: #606770; --cor-borda: #ddd; --cor-header-tabela: #1d4ed8;
+            --cor-fundo-escuro: #1a1a1d; --cor-container-escuro: #2c2f33; --cor-texto-principal-claro: #e0e0e0;
+            --cor-texto-secundario-claro: #a0a0a0; --cor-borda-escura: #4a4a4a; --cor-header-tabela: #2563eb;
         }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto-principal); margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 40px auto; background: var(--cor-container); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-top: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo-escuro); color: var(--cor-texto-principal-claro); margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 40px auto; background: var(--cor-container-escuro); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid var(--cor-borda-escura); }
+        h1 { text-align: center; border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; margin-top: 0; }
         form { display: flex; flex-direction: column; gap: 15px; }
         .form-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 15px; align-items: flex-end; }
-        select, input, button { padding: 12px; border-radius: 6px; border: 1px solid var(--cor-borda); font-size: 16px; width: 100%; box-sizing: border-box; }
+        select, input, button { padding: 12px; border-radius: 6px; border: 1px solid var(--cor-borda-escura); font-size: 16px; width: 100%; box-sizing: border-box; background-color: #3d3d4d; color: var(--cor-texto-principal-claro); font-family: 'Inter', sans-serif;}
         button { background-color: #28a745; color: white; font-weight: bold; cursor: pointer; border: none; transition: background-color 0.2s; margin-top: 10px;}
         button:hover { background-color: #218838; }
         .form-group { display: flex; flex-direction: column; }
-        label { margin-bottom: 5px; color: var(--cor-texto-secundario); font-weight: 500; }
+        label { margin-bottom: 5px; color: var(--cor-texto-secundario-claro); font-weight: 500; }
         .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
     </style>
 </head>
@@ -48,6 +48,21 @@
                     <label for="forca_time_b">Força Time</label>
                     <input type="number" name="forca_time_b" value="85" required>
                 </div>
+            </div>
+
+            <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="form-group">
+                    <label for="placar_a">Placar A</label>
+                    <input type="number" name="placar_a" value="0" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="placar_b">Placar B</label>
+                    <input type="number" name="placar_b" value="0" min="0" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="fase">Fase / Rodada (Opcional)</label>
+                <input type="text" name="fase" id="fase" placeholder="Ex: Final, Rodada 3, etc.">
             </div>
             <div class="form-group" style="margin-top: 10px;">
                 <label for="resultado">Resultado para Jogador A</label>

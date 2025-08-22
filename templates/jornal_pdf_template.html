@@ -84,6 +84,67 @@
             margin: 25px 10%;
             break-inside: avoid-column;
         }
+        .optional-section {
+            break-before: column; /* Tenta forçar a quebra de coluna antes da seção */
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #333;
+        }
+        .optional-section h2 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 18pt;
+            text-align: center;
+            border: none;
+            padding: 0;
+            margin-bottom: 15px;
+        }
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+        .styled-table th, .styled-table td {
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .styled-table thead tr {
+            background-color: #333;
+            color: #fff;
+            text-align: left;
+        }
+        .styled-table th {
+             font-weight: bold;
+        }
+        .styled-table tbody tr {
+            border-bottom: 1px solid #ddd;
+        }
+        .styled-table tbody tr:nth-of-type(even) { /* Efeito "Zebra" */
+            background-color: #f3f3f3;
+        }
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid #000;
+        }
+        .styled-table tbody tr:nth-child(-n+3) {
+            background-color: #fffde7; 
+            font-weight: 500;
+        }
+        .table-avatar {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .player-cell {
+            display: flex;
+            align-items: center;
+        }
+        .rank-cell, .points-cell {
+            text-align: center;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -112,5 +173,54 @@
         {% endfor %}
     </main>
 
+    {% if classificacao_campeonato %}
+    <div class="optional-section">
+        <h2>{{ classificacao_campeonato.nome }}</h2>
+        <table class="styled-table">
+            <thead>
+                <tr><th style="width:15%;" class="rank-cell">#</th><th>Treinador</th><th style="width:25%;" class="points-cell">Pontos</th></tr>
+            </thead>
+            <tbody>
+                {% for item in classificacao_campeonato.tabela %}
+                <tr>
+                    <td class="rank-cell">{{ loop.index }}º</td>
+                    <td>
+                        <div class="player-cell">
+                            <img src="{{ item.avatar_path }}" class="table-avatar">
+                            <span>{{ item.jogador }}</span>
+                        </div>
+                    </td>
+                    <td class="points-cell">{{ item.pontos }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if ranking_elo %}
+    <div class="optional-section">
+        <h2>Ranking Geral de Treinadores</h2>
+        <table class="styled-table">
+            <thead>
+                <tr><th style="width:15%;" class="rank-cell">#</th><th>Treinador</th><th style="width:25%;" class="points-cell">Rating Elo</th></tr>
+            </thead>
+            <tbody>
+                {% for jogador in ranking_elo %}
+                <tr>
+                    <td class="rank-cell">{{ loop.index }}º</td>
+                    <td>
+                        <div class="player-cell">
+                            <img src="{{ jogador.avatar_path }}" class="table-avatar">
+                            <span>{{ jogador.nome }}</span>
+                        </div>
+                    </td>
+                    <td class="points-cell">{{ jogador.pontos }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
 </body>
 </html>

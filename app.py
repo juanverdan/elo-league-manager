@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, make_response
+from flask import Flask, render_template, request, redirect, url_for, flash, make_response, session
+import functools
 import json
 import csv
 import random
@@ -8,12 +9,28 @@ from collections import defaultdict
 from datetime import datetime
 from unidecode import unidecode
 from weasyprint import HTML
-from ranking import registrar_partida, contar_partidas_jogadas, JOGOS_PROVISIONAIS, RATING_INICIAL_ATIVO, aplicar_bonus_campeonato
+from ranking import (
+    registrar_partida, contar_partidas_jogadas, aplicar_bonus_campeonato,
+    carregar_ratings, salvar_ratings,
+    JOGOS_PROVISIONAIS, RATING_INICIAL_ATIVO, RATING_INICIAL_INATIVO
+)
 
 app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta_pode_ser_qualquer_coisa_aleatoria'
 UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static/uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# MUDE ESTA SENHA PARA ALGO SEGURO!
+ADMIN_PASSWORD = '123' 
+
+# --- DECORATOR DE LOGIN OBRIGATÓRIO ---
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if 'logged_in' not in session:
+            flash("Você precisa estar logado para acessar esta página.", 'error')
+            return redirect(url_for('login'))
+        return view(**kwargs)
+    return wrapped_view
 
 # --- FUNÇÕES DE CARREGAMENTO ---
 def carregar_regras_torneios():
@@ -76,29 +93,6 @@ def index():
     ranking, _ = carregar_dados_completos()
     return render_template('ranking.html', ranking=ranking)
 
-@app.route('/registrar', methods=['GET', 'POST'])
-def registrar_partida_route():
-    if request.method == 'POST':
-        j_a = request.form['jogador_a']
-        j_b = request.form['jogador_b']
-        res = request.form['resultado']
-        torn = request.form['torneio']
-        forca_a = int(request.form['forca_time_a'])
-        forca_b = int(request.form['forca_time_b'])
-
-        if j_a != j_b:
-            res_map = {'vitoria_a': 1, 'empate': 0.5, 'derrota_a': 0}
-            registrar_partida(j_a, j_b, res_map[res], torn, forca_a, forca_b)
-            flash(f"Partida registrada com sucesso!", 'success')
-        else:
-            flash("Erro: Os jogadores devem ser diferentes.", 'error')
-        return redirect(url_for('index'))
-    
-    _, jogadores = carregar_dados_completos()
-    regras_torneios = carregar_regras_torneios()
-    nomes_torneios = [torneio['nome'] for torneio in regras_torneios]
-    return render_template('registrar.html', jogadores=jogadores, torneios=nomes_torneios)
-
 @app.route('/player/<nome_do_jogador>')
 def player_profile(nome_do_jogador):
     historico_conquistas = []
@@ -109,7 +103,6 @@ def player_profile(nome_do_jogador):
                 if row['jogador'] == nome_do_jogador:
                     historico_conquistas.append(row)
     except FileNotFoundError: pass
-
     historico_rating = carregar_historico()
     labels_grafico = []; dados_grafico = []
     for snapshot in historico_rating:
@@ -123,20 +116,92 @@ def player_profile(nome_do_jogador):
             labels_grafico.append("Agora")
             dados_grafico.append(jogador_data['pontos'])
             break
-            
     nome_sem_acento = unidecode(nome_do_jogador)
     avatar_filename = nome_sem_acento.lower().replace(' ', '_') + '.png'
-
+    h2h_stats = defaultdict(lambda: {'V': 0, 'E': 0, 'D': 0})
+    all_matches_details = []
+    try:
+        with open('partidas.csv', 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for partida in reader:
+                partida_detalhes = {
+                    'torneio': partida.get('torneio'), 'placar_a': partida.get('placar_a', ''),
+                    'placar_b': partida.get('placar_b', ''), 'fase': partida.get('fase', '')
+                }
+                if partida['jogador_a'] == nome_do_jogador:
+                    oponente = partida['jogador_b']
+                    resultado_jogador = float(partida['resultado_a'])
+                    partida_detalhes['oponente'] = oponente
+                    partida_detalhes['resultado'] = resultado_jogador
+                    all_matches_details.append(partida_detalhes)
+                    if resultado_jogador == 1: h2h_stats[oponente]['V'] += 1
+                    elif resultado_jogador == 0.5: h2h_stats[oponente]['E'] += 1
+                    else: h2h_stats[oponente]['D'] += 1
+                elif partida['jogador_b'] == nome_do_jogador:
+                    oponente = partida['jogador_a']
+                    resultado_jogador = 1 - float(partida['resultado_a']) if partida['resultado_a'] != '0.5' else 0.5
+                    partida_detalhes['oponente'] = oponente
+                    partida_detalhes['resultado'] = resultado_jogador
+                    all_matches_details.append(partida_detalhes)
+                    if resultado_jogador == 1: h2h_stats[oponente]['V'] += 1
+                    elif resultado_jogador == 0.5: h2h_stats[oponente]['E'] += 1
+                    else: h2h_stats[oponente]['D'] += 1
+    except FileNotFoundError: pass
     return render_template(
         'player.html', jogador_nome=nome_do_jogador, historico=historico_conquistas,
-        labels_grafico=labels_grafico, dados_grafico=dados_grafico, avatar_filename=avatar_filename
+        labels_grafico=labels_grafico, dados_grafico=dados_grafico, avatar_filename=avatar_filename,
+        h2h_stats=h2h_stats, all_matches_details=all_matches_details
     )
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        if request.form.get('password') == ADMIN_PASSWORD:
+            session['logged_in'] = True
+            flash("Login realizado com sucesso!", 'success')
+            return redirect(url_for('index'))
+        else:
+            flash("Senha incorreta.", 'error')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    flash("Você foi desconectado.", 'success')
+    return redirect(url_for('index'))
+
+@app.route('/registrar', methods=['GET', 'POST'])
+@login_required
+def registrar_partida_route():
+    if request.method == 'POST':
+        j_a = request.form['jogador_a']; j_b = request.form['jogador_b']; res = request.form['resultado']; torn = request.form['torneio']
+        forca_a = int(request.form['forca_time_a']); forca_b = int(request.form['forca_time_b'])
+        placar_a = int(request.form['placar_a']); placar_b = int(request.form['placar_b'])
+        fase = request.form['fase']
+        if j_a != j_b:
+            res_map = {'vitoria_a': 1, 'empate': 0.5, 'derrota_a': 0}
+            registrar_partida(j_a, j_b, res_map[res], torn, forca_a, forca_b, placar_a, placar_b, fase)
+            flash(f"Partida registrada com sucesso!", 'success')
+        else:
+            flash("Erro: Os jogadores devem ser diferentes.", 'error')
+        return redirect(url_for('index'))
+    _, jogadores = carregar_dados_completos()
+    regras_torneios = carregar_regras_torneios()
+    nomes_torneios = [torneio['nome'] for torneio in regras_torneios]
+    return render_template('registrar.html', jogadores=jogadores, torneios=nomes_torneios)
+
 @app.route('/admin/torneios', methods=['GET', 'POST'])
+@login_required
 def gerenciar_torneios():
     regras_atuais = carregar_regras_torneios()
     if request.method == 'POST':
-        novo_torneio = { "nome": request.form['nome'], "k_factor": int(request.form['k_factor']), "bonus_campeao": int(request.form['bonus_campeao']), "bonus_vice": int(request.form['bonus_vice']), "bonus_semi": int(request.form['bonus_semi']) }
+        tipo_torneio = request.form['tipo']
+        novo_torneio = {
+            "nome": request.form['nome'], "tipo": tipo_torneio,
+            "k_factor": int(request.form['k_factor']), "bonus_campeao": int(request.form['bonus_campeao']),
+            "bonus_vice": int(request.form['bonus_vice']), "bonus_semi": int(request.form['bonus_semi']),
+            "bonus_quarto": int(request.form.get('bonus_quarto', 0)) if tipo_torneio == 'Pontos Corridos' else 0
+        }
         regras_atuais.append(novo_torneio)
         with open('torneios.json', 'w', encoding='utf-8') as f:
             json.dump(regras_atuais, f, indent=2, ensure_ascii=False)
@@ -145,18 +210,41 @@ def gerenciar_torneios():
     return render_template('gerenciar_torneios.html', torneios=regras_atuais)
 
 @app.route('/admin/finalizar', methods=['GET', 'POST'])
+@login_required
 def finalizar_torneio():
     if request.method == 'POST':
-        torneio = request.form['torneio_nome']; data = request.form['data_fim']; campeao = request.form['campeao']; vice = request.form['vice']; semi1 = request.form['semi1']; semi2 = request.form['semi2']
-        aplicar_bonus_campeonato(torneio, data, campeao, vice, semi1, semi2)
+        torneio = request.form['torneio_nome']; data = request.form['data_fim']; campeao = request.form['campeao']; vice = request.form['vice']
+        semi1 = request.form.get('semi1'); semi2 = request.form.get('semi2')
+        terceiro = request.form.get('terceiro'); quarto = request.form.get('quarto')
+        aplicar_bonus_campeonato(torneio, data, campeao, vice, semi1, semi2, terceiro, quarto)
         flash(f"Torneio '{torneio}' finalizado e bônus aplicados com sucesso!", 'success')
         return redirect(url_for('index'))
     _, jogadores = carregar_dados_completos()
     regras_torneios = carregar_regras_torneios()
-    nomes_torneios = [t['nome'] for t in regras_torneios]
-    return render_template('finalizar_torneio.html', jogadores=jogadores, torneios=nomes_torneios)
+    return render_template('finalizar_torneio.html', jogadores=jogadores, torneios=regras_torneios)
+    
+@app.route('/admin/jogadores', methods=['GET', 'POST'])
+@login_required
+def gerenciar_jogadores():
+    ratings_dict = carregar_ratings()
+    if request.method == 'POST':
+        novo_jogador = request.form.get('nome_jogador')
+        if novo_jogador and novo_jogador.strip():
+            nome_jogador_tratado = novo_jogador.strip()
+            if nome_jogador_tratado not in ratings_dict:
+                ratings_dict[nome_jogador_tratado] = RATING_INICIAL_INATIVO
+                salvar_ratings(ratings_dict)
+                flash(f"Jogador '{nome_jogador_tratado}' adicionado com {RATING_INICIAL_INATIVO} pontos!", 'success')
+            else:
+                flash(f"Erro: Jogador '{nome_jogador_tratado}' já existe.", 'error')
+        else:
+            flash("Erro: Nome do jogador não pode ser vazio.", 'error')
+        return redirect(url_for('gerenciar_jogadores'))
+    jogadores_ordenados = sorted(ratings_dict.items())
+    return render_template('gerenciar_jogadores.html', jogadores=jogadores_ordenados)
 
 @app.route('/draft', methods=['GET', 'POST'])
+@login_required
 def draft_lottery():
     ranking_completo, _ = carregar_dados_completos()
     if request.method == 'POST':
@@ -168,17 +256,13 @@ def draft_lottery():
             distribuicao_bolinhas = [140, 125, 105, 90, 75, 60, 45, 30, 20, 15, 11, 8, 6, 5]
             chances = []; total_bolinhas = 0
             for i, jogador in enumerate(reversed(participantes)):
-                if i < len(distribuicao_bolinhas):
-                    bolinhas = distribuicao_bolinhas[i]
-                else:
-                    bolinhas = 1
+                if i < len(distribuicao_bolinhas): bolinhas = distribuicao_bolinhas[i]
+                else: bolinhas = 1
                 chances.append({'nome': jogador['nome'], 'pontos': jogador['pontos'], 'bolinhas': bolinhas})
                 total_bolinhas += bolinhas
             for j in chances:
-                if total_bolinhas > 0:
-                    j['probabilidade'] = (j['bolinhas'] / total_bolinhas) * 100
-                else:
-                    j['probabilidade'] = 0
+                if total_bolinhas > 0: j['probabilidade'] = (j['bolinhas'] / total_bolinhas) * 100
+                else: j['probabilidade'] = 0
             chances.sort(key=lambda x: x['bolinhas'], reverse=True)
             return render_template('draft.html', todos_jogadores=ranking_completo, chances=chances, total_bolinhas=total_bolinhas)
         elif action == 'realizar_sorteio':
@@ -188,74 +272,89 @@ def draft_lottery():
             distribuicao_bolinhas = [140, 125, 105, 90, 75, 60, 45, 30, 20, 15, 11, 8, 6, 5]
             pote_virtual = []
             for i, jogador in enumerate(reversed(participantes_data)):
-                if i < len(distribuicao_bolinhas):
-                    bolinhas = distribuicao_bolinhas[i]
-                else:
-                    bolinhas = 1
+                if i < len(distribuicao_bolinhas): bolinhas = distribuicao_bolinhas[i]
+                else: bolinhas = 1
                 pote_virtual.extend([jogador['nome']] * bolinhas)
             random.shuffle(pote_virtual)
             draft_results = []
             while len(draft_results) < len(participantes_data):
                 if not pote_virtual: break
                 escolhido = random.choice(pote_virtual)
-                if escolhido not in draft_results:
-                    draft_results.append(escolhido)
+                if escolhido not in draft_results: draft_results.append(escolhido)
             return render_template('draft.html', draft_results=draft_results)
     return render_template('draft.html', todos_jogadores=ranking_completo)
 
 @app.route('/admin/jornal', methods=['GET', 'POST'])
+@login_required
 def jornal_liga():
-    partidas_recentes = []
+    _, todos_jogadores = carregar_dados_completos()
+    todas_as_partidas = []
     try:
         with open('partidas.csv', 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for i, row in enumerate(reader):
                 row['id'] = i
-                partidas_recentes.append(row)
-    except FileNotFoundError:
-        pass
-    
+                todas_as_partidas.append(row)
+    except FileNotFoundError: pass
+    partidas_para_exibir = todas_as_partidas[-10:]
     if request.method == 'POST':
         indices_selecionados = [int(i) for i in request.form.getlist('partidas_selecionadas')]
-        
+        partidas_para_jornal = [todas_as_partidas[i] for i in indices_selecionados]
         dados_jornal = {
-            "edicao": request.form['edicao'],
-            "editorial": request.form['editorial'],
-            "data_hoje": datetime.now().strftime('%d.%m.%Y'),
-            "partidas": []
+            "edicao": request.form['edicao'], "editorial": request.form['editorial'],
+            "data_hoje": datetime.now().strftime('%d.%m.%Y'), "partidas": [],
+            "ranking_elo": None, "classificacao_campeonato": None
         }
-        for i in indices_selecionados:
-            p = partidas_recentes[i]
+        for p in partidas_para_jornal:
+            partida_id = p['id']
             resultado = float(p['resultado_a'])
             vencedor = p['jogador_a'] if resultado == 1 else p['jogador_b'] if resultado == 0 else "Empate"
             perdedor = p['jogador_b'] if resultado == 1 else p['jogador_a'] if resultado == 0 else ""
-            resumo_partida = request.form.get(f"resumo_{i}", "Nenhum resumo fornecido.")
-            
+            resumo_partida = request.form.get(f"resumo_{partida_id}", "Nenhum resumo fornecido.")
             imagem_path = None
-            imagem_arquivo = request.files.get(f'imagem_{i}')
+            imagem_arquivo = request.files.get(f'imagem_{partida_id}')
             if imagem_arquivo and imagem_arquivo.filename != '':
                 filename = secure_filename(imagem_arquivo.filename)
                 caminho_salvo = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 imagem_arquivo.save(caminho_salvo)
                 imagem_path = f"file:///{caminho_salvo}"
-            
             dados_jornal["partidas"].append({
                 "jogador_a": p['jogador_a'], "jogador_b": p['jogador_b'],
                 "torneio": p['torneio'], "vencedor": vencedor, "perdedor": perdedor,
-                "resumo": resumo_partida,
-                "imagem_path": imagem_path
+                "resumo": resumo_partida, "imagem_path": imagem_path
             })
+        
+        if 'incluir_ranking_elo' in request.form:
+            ranking, _ = carregar_dados_completos()
+            for jogador in ranking:
+                avatar_abs_path = os.path.join(app.config['UPLOAD_FOLDER'].replace('uploads', 'avatars'), jogador['avatar_filename'])
+                jogador['avatar_path'] = f"file:///{avatar_abs_path}"
+            dados_jornal['ranking_elo'] = ranking
+        if 'incluir_classificacao' in request.form:
+            jogadores_classificacao = request.form.getlist('classificacao_jogador')
+            pontos_classificacao = request.form.getlist('classificacao_pontos')
+            tabela = []
+            for i in range(len(jogadores_classificacao)):
+                if jogadores_classificacao[i] and pontos_classificacao[i]:
+                    nome_sem_acento = unidecode(jogadores_classificacao[i])
+                    avatar_filename = nome_sem_acento.lower().replace(' ', '_') + '.png'
+                    avatar_abs_path = os.path.join(app.config['UPLOAD_FOLDER'].replace('uploads', 'avatars'), avatar_filename)
+                    tabela.append({
+                        'jogador': jogadores_classificacao[i], 'pontos': int(pontos_classificacao[i]),
+                        'avatar_path': f"file:///{avatar_abs_path}"
+                    })
+            tabela.sort(key=lambda x: x['pontos'], reverse=True)
+            dados_jornal['classificacao_campeonato'] = {
+                "nome": request.form.get('nome_campeonato', 'Classificação'), "tabela": tabela
+            }
         
         html_para_pdf = render_template('jornal_pdf_template.html', **dados_jornal)
         pdf = HTML(string=html_para_pdf).write_pdf()
-        
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = f'inline; filename=jornal_liga_edicao_{dados_jornal["edicao"]}.pdf'
-        
         return response
-
-    return render_template('jornal_editor.html', partidas_recentes=reversed(partidas_recentes))
+    return render_template('jornal_editor.html', partidas_recentes=reversed(partidas_para_exibir), todos_jogadores=jogadores)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
