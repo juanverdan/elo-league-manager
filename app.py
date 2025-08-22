@@ -83,6 +83,10 @@ def index():
 @app.route('/player/<nome_do_jogador>')
 def player_profile(nome_do_jogador):
     historico_conquistas = []
+    titulos_ganhos = []
+    regras_dos_torneios_lista = carregar_regras_torneios()
+    regras_dos_torneios_dict = {t['nome']: t for t in regras_dos_torneios_lista}
+
     caminho_resultados = os.path.join(BASE_DIR, 'resultados_torneios.csv')
     try:
         with open(caminho_resultados, 'r', encoding='utf-8') as f:
@@ -90,7 +94,15 @@ def player_profile(nome_do_jogador):
             for row in reader:
                 if row['jogador'] == nome_do_jogador:
                     historico_conquistas.append(row)
+                    if '1º' in row['colocacao'] or 'Campeão' in row['colocacao']:
+                        nome_torneio = row['torneio']
+                        if nome_torneio in regras_dos_torneios_dict:
+                            titulos_ganhos.append({
+                                'nome': nome_torneio,
+                                'imagem': regras_dos_torneios_dict[nome_torneio].get('trophy_img', 'default_trophy.png')
+                            })
     except FileNotFoundError: pass
+
     historico_rating = carregar_historico()
     labels_grafico = []; dados_grafico = []
     for snapshot in historico_rating:
@@ -104,6 +116,7 @@ def player_profile(nome_do_jogador):
             labels_grafico.append("Agora")
             dados_grafico.append(jogador_data['pontos'])
             break
+    
     h2h_stats = defaultdict(lambda: {'V': 0, 'E': 0, 'D': 0})
     all_matches_details = []
     caminho_partidas = os.path.join(BASE_DIR, 'partidas.csv')
@@ -129,12 +142,15 @@ def player_profile(nome_do_jogador):
                     elif resultado_jogador == 0.5: h2h_stats[oponente]['E'] += 1
                     else: h2h_stats[oponente]['D'] += 1
     except FileNotFoundError: pass
+    
     nome_sem_acento = unidecode(nome_do_jogador)
     avatar_filename = nome_sem_acento.lower().replace(' ', '_') + '.png'
+
     return render_template(
         'player.html', jogador_nome=nome_do_jogador, historico=historico_conquistas,
-        labels_grafico=labels_grafico, dados_grafico=dados_grafico, avatar_filename=avatar_filename,
-        h2h_stats=h2h_stats, all_matches_details=all_matches_details
+        labels_grafico=labels_grafico, dados_grafico=dados_grafico,
+        avatar_filename=avatar_filename, h2h_stats=h2h_stats,
+        all_matches_details=all_matches_details, titulos_ganhos=titulos_ganhos
     )
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -170,8 +186,8 @@ def registrar_partida_route():
             flash("Erro: Os jogadores devem ser diferentes.", 'error')
         return redirect(url_for('index'))
     _, jogadores = carregar_dados_completos()
-    regras_torneios = carregar_regras_torneios()
-    nomes_torneios = [torneio['nome'] for torneio in regras_torneios]
+    regras_torneios_lista = carregar_regras_torneios()
+    nomes_torneios = [torneio['nome'] for torneio in regras_torneios_lista]
     return render_template('registrar.html', jogadores=jogadores, torneios=nomes_torneios)
 
 @app.route('/admin/torneios', methods=['GET', 'POST'])
@@ -184,7 +200,8 @@ def gerenciar_torneios():
             "nome": request.form['nome'], "tipo": tipo_torneio,
             "k_factor": int(request.form['k_factor']), "bonus_campeao": int(request.form['bonus_campeao']),
             "bonus_vice": int(request.form['bonus_vice']), "bonus_semi": int(request.form['bonus_semi']),
-            "bonus_quarto": int(request.form.get('bonus_quarto', 0)) if tipo_torneio == 'Pontos Corridos' else 0
+            "bonus_quarto": int(request.form.get('bonus_quarto', 0)) if tipo_torneio == 'Pontos Corridos' else 0,
+            "trophy_img": request.form.get('trophy_img', '')
         }
         regras_atuais.append(novo_torneio)
         with open(os.path.join(BASE_DIR, 'torneios.json'), 'w', encoding='utf-8') as f:
@@ -204,8 +221,8 @@ def finalizar_torneio():
         flash(f"Torneio '{torneio}' finalizado e bônus aplicados com sucesso!", 'success')
         return redirect(url_for('index'))
     _, jogadores = carregar_dados_completos()
-    regras_torneios = carregar_regras_torneios()
-    return render_template('finalizar_torneio.html', jogadores=jogadores, torneios=regras_torneios)
+    regras_torneios_lista = carregar_regras_torneios()
+    return render_template('finalizar_torneio.html', jogadores=jogadores, torneios=regras_torneios_lista)
     
 @app.route('/admin/jogadores', methods=['GET', 'POST'])
 @login_required

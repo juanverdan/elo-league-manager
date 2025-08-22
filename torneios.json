@@ -5,7 +5,8 @@
     "bonus_campeao": 75,
     "bonus_vice": 40,
     "bonus_semi": 20,
-    "tipo": "Mata-Mata"
+    "tipo": "Mata-Mata",
+    "trophy_img": "champions.png"
   },
   {
     "nome": "Série B",
@@ -13,7 +14,8 @@
     "bonus_campeao": 75,
     "bonus_vice": 40,
     "bonus_semi": 20,
-    "tipo": "Pontos Corridos"
+    "tipo": "Pontos Corridos",
+    "trophy_img": "serieb.png"
   },
   {
     "nome": "CdB B",
@@ -21,7 +23,8 @@
     "bonus_campeao": 40,
     "bonus_vice": 20,
     "bonus_semi": 10,
-    "tipo": "Mata-Mata"
+    "tipo": "Mata-Mata",
+    "trophy_img": "cdb.png"
   },
   {
     "nome": "UNICEF Cup",
@@ -29,7 +32,8 @@
     "bonus_campeao": 40,
     "bonus_vice": 20,
     "bonus_semi": 10,
-    "tipo": "Mata-Mata"
+    "tipo": "Mata-Mata",
+    "trophy_img": "unicef.png"
   },
   {
     "nome": "Amistoso",
@@ -46,6 +50,7 @@
     "bonus_campeao": 75,
     "bonus_vice": 50,
     "bonus_semi": 35,
-    "bonus_quarto": 20
+    "bonus_quarto": 20,
+    "trophy_img": "craquenet.png"
   }
 ]
