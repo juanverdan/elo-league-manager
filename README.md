@@ -18,7 +18,7 @@ Uma plataforma avançada de gerenciamento de ligas construída com Python/Flask.
 <br>
 
 <p align="center">
-  <img alt="projeto landing-page" src=".static/images/avatars/preview.png" width="100%">
+  <img alt="projeto landing-page" src="static/images/avatars/preview.png" width="100%">
 </p>
 
 ## 🚀 Tecnologias
