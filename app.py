@@ -86,7 +86,6 @@ def player_profile(nome_do_jogador):
     titulos_ganhos = []
     regras_dos_torneios_lista = carregar_regras_torneios()
     regras_dos_torneios_dict = {t['nome']: t for t in regras_dos_torneios_lista}
-
     caminho_resultados = os.path.join(BASE_DIR, 'resultados_torneios.csv')
     try:
         with open(caminho_resultados, 'r', encoding='utf-8') as f:
@@ -102,7 +101,6 @@ def player_profile(nome_do_jogador):
                                 'imagem': regras_dos_torneios_dict[nome_torneio].get('trophy_img', 'default_trophy.png')
                             })
     except FileNotFoundError: pass
-
     historico_rating = carregar_historico()
     labels_grafico = []; dados_grafico = []
     for snapshot in historico_rating:
@@ -116,7 +114,6 @@ def player_profile(nome_do_jogador):
             labels_grafico.append("Agora")
             dados_grafico.append(jogador_data['pontos'])
             break
-    
     h2h_stats = defaultdict(lambda: {'V': 0, 'E': 0, 'D': 0})
     all_matches_details = []
     caminho_partidas = os.path.join(BASE_DIR, 'partidas.csv')
@@ -142,10 +139,8 @@ def player_profile(nome_do_jogador):
                     elif resultado_jogador == 0.5: h2h_stats[oponente]['E'] += 1
                     else: h2h_stats[oponente]['D'] += 1
     except FileNotFoundError: pass
-    
     nome_sem_acento = unidecode(nome_do_jogador)
     avatar_filename = nome_sem_acento.lower().replace(' ', '_') + '.png'
-
     return render_template(
         'player.html', jogador_nome=nome_do_jogador, historico=historico_conquistas,
         labels_grafico=labels_grafico, dados_grafico=dados_grafico,
@@ -195,29 +190,42 @@ def registrar_partida_route():
 def gerenciar_torneios():
     regras_atuais = carregar_regras_torneios()
     if request.method == 'POST':
-        tipo_torneio = request.form['tipo']
-        novo_torneio = {
-            "nome": request.form['nome'], "tipo": tipo_torneio,
-            "k_factor": int(request.form['k_factor']), "bonus_campeao": int(request.form['bonus_campeao']),
-            "bonus_vice": int(request.form['bonus_vice']), "bonus_semi": int(request.form['bonus_semi']),
-            "bonus_quarto": int(request.form.get('bonus_quarto', 0)) if tipo_torneio == 'Pontos Corridos' else 0,
-            "trophy_img": request.form.get('trophy_img', '')
-        }
-        regras_atuais.append(novo_torneio)
+        form_type = request.form.get('form_type')
+        if form_type == 'add_torneio':
+            tipo_torneio = request.form['tipo']
+            novo_torneio = {
+                "nome": request.form['nome'], "tipo": tipo_torneio,
+                "k_factor": int(request.form['k_factor']), "bonus_campeao": int(request.form['bonus_campeao']),
+                "bonus_vice": int(request.form['bonus_vice']), "bonus_semi": int(request.form['bonus_semi']),
+                "bonus_quarto": int(request.form.get('bonus_quarto', 0)) if tipo_torneio == 'Pontos Corridos' else 0,
+                "trophy_img": "", "participantes": []
+            }
+            regras_atuais.append(novo_torneio)
+            flash(f"Torneio '{novo_torneio['nome']}' adicionado com sucesso!", 'success')
+        elif form_type == 'add_participantes':
+            torneio_selecionado = request.form.get('torneio_selecionado')
+            participantes_selecionados = request.form.getlist('participantes')
+            for torneio in regras_atuais:
+                if torneio['nome'] == torneio_selecionado:
+                    torneio['participantes'] = participantes_selecionados
+                    break
+            flash(f"Participantes atualizados para o torneio '{torneio_selecionado}'!", 'success')
         with open(os.path.join(BASE_DIR, 'torneios.json'), 'w', encoding='utf-8') as f:
             json.dump(regras_atuais, f, indent=2, ensure_ascii=False)
-        flash(f"Torneio '{novo_torneio['nome']}' adicionado com sucesso!", 'success')
         return redirect(url_for('gerenciar_torneios'))
-    return render_template('gerenciar_torneios.html', torneios=regras_atuais)
+    _, todos_jogadores = carregar_dados_completos()
+    return render_template('gerenciar_torneios.html', torneios=regras_atuais, todos_jogadores=todos_jogadores)
 
 @app.route('/admin/finalizar', methods=['GET', 'POST'])
 @login_required
 def finalizar_torneio():
     if request.method == 'POST':
-        torneio = request.form['torneio_nome']; data = request.form['data_fim']; campeao = request.form['campeao']; vice = request.form['vice']
-        semi1 = request.form.get('semi1'); semi2 = request.form.get('semi2')
+        torneio = request.form['torneio_nome']; data = request.form['data_fim']
+        primeiro = request.form.get('primeiro'); segundo = request.form.get('segundo')
         terceiro = request.form.get('terceiro'); quarto = request.form.get('quarto')
-        aplicar_bonus_campeonato(torneio, data, campeao, vice, semi1, semi2, terceiro, quarto)
+        campeao = request.form.get('campeao'); vice = request.form.get('vice')
+        semi1 = request.form.get('semi1'); semi2 = request.form.get('semi2')
+        aplicar_bonus_campeonato(torneio, data, campeao or primeiro, vice or segundo, semi1, semi2, terceiro, quarto)
         flash(f"Torneio '{torneio}' finalizado e bônus aplicados com sucesso!", 'success')
         return redirect(url_for('index'))
     _, jogadores = carregar_dados_completos()
@@ -288,7 +296,8 @@ def draft_lottery():
 @app.route('/admin/jornal', methods=['GET', 'POST'])
 @login_required
 def jornal_liga():
-    _, todos_jogadores = carregar_dados_completos()
+    _, todos_jogadores_nomes = carregar_dados_completos()
+    todos_torneios = carregar_regras_torneios()
     todas_as_partidas = []
     caminho_partidas = os.path.join(BASE_DIR, 'partidas.csv')
     try:
@@ -355,7 +364,7 @@ def jornal_liga():
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = f'inline; filename=jornal_liga_edicao_{dados_jornal["edicao"]}.pdf'
         return response
-    return render_template('jornal_editor.html', partidas_recentes=reversed(partidas_para_exibir), todos_jogadores=todos_jogadores)
+    return render_template('jornal_editor.html', partidas_recentes=reversed(partidas_para_exibir), todos_jogadores=todos_jogadores_nomes, todos_torneios=todos_torneios)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

@@ -6,7 +6,8 @@
     "bonus_vice": 40,
     "bonus_semi": 20,
     "tipo": "Mata-Mata",
-    "trophy_img": "champions.png"
+    "trophy_img": "champions.png",
+    "participantes": []
   },
   {
     "nome": "Série B",
@@ -15,7 +16,8 @@
     "bonus_vice": 40,
     "bonus_semi": 20,
     "tipo": "Pontos Corridos",
-    "trophy_img": "serieb.png"
+    "trophy_img": "serieb.png",
+    "participantes": []
   },
   {
     "nome": "CdB B",
@@ -33,7 +35,8 @@
     "bonus_vice": 20,
     "bonus_semi": 10,
     "tipo": "Mata-Mata",
-    "trophy_img": "unicef.png"
+    "trophy_img": "unicef.png",
+    "participantes": []
   },
   {
     "nome": "Amistoso",
@@ -51,6 +54,20 @@
     "bonus_vice": 50,
     "bonus_semi": 35,
     "bonus_quarto": 20,
-    "trophy_img": "craquenet.png"
+    "trophy_img": "craquenet.png",
+    "participantes": [
+      "Alex Markes",
+      "André",
+      "Daniel Campos",
+      "Emanuel",
+      "Hericles",
+      "Indiano",
+      "Lavieri",
+      "Ledin",
+      "Ramon",
+      "Samuel",
+      "Tiago",
+      "Valdo"
+    ]
   }
 ]

@@ -28,9 +28,8 @@
         input[type="file"] { padding: 5px; }
         .hidden { display: none; }
         .classification-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        .classification-row select { flex: 3; }
+        .classification-row label { flex: 3; margin-bottom: 0; font-weight: normal; color: var(--cor-texto-principal-claro); }
         .classification-row input { flex: 1; }
-        #classification-list-container button { font-size: 14px; padding: 8px 12px; width: auto; background-color: #007bff; }
     </style>
 </head>
 <body>
@@ -40,7 +39,7 @@
             <h2>1. Detalhes da Edição</h2>
             <div class="form-group">
                 <label for="edicao">Número da Edição</label>
-                <input type="number" name="edicao" id="edicao" value="1" required>
+                <input type="number" name="edicao" id="edicao" value="1" min="1" required>
             </div>
             <div class="form-group">
                 <label for="editorial">Manchete / Citação Principal da Rodada</label>
@@ -51,7 +50,7 @@
             {% for partida in partidas_recentes %}
             <div class="match-selection-item">
                 <label class="match-label">
-                    <input type="checkbox" name="partidas_selecionadas" value="{{ partida.id }}" style="width: auto;">
+                    <input type="checkbox" name="partidas_selecionadas" value="{{ partida.id }}" style="width: auto; height: 18px; flex-shrink: 0;">
                     {{ partida.jogador_a }} vs {{ partida.jogador_b }} ({{ partida.torneio }})
                 </label>
                 <div class="match-summary">
@@ -65,26 +64,30 @@
             <h2>3. Módulos Opcionais para o Final do Jornal</h2>
             <div class="match-selection-item">
                 <label class="match-label">
-                    <input type="checkbox" name="incluir_ranking_elo" value="true" style="width: auto;">
+                    <input type="checkbox" name="incluir_ranking_elo" value="true" style="width: auto; height: 18px; flex-shrink: 0;">
                     Incluir Ranking de Treinadores (ELO Geral)
                 </label>
             </div>
             <div class="match-selection-item">
                 <label class="match-label">
-                    <input type="checkbox" name="incluir_classificacao" id="check_classificacao" value="true" style="width: auto;" onchange="toggleClassification()">
+                    <input type="checkbox" name="incluir_classificacao" id="check_classificacao" value="true" style="width: auto; height: 18px; flex-shrink: 0;" onchange="toggleClassification()">
                     Incluir Classificação do Campeonato
                 </label>
                 <div id="classificacao-container" class="hidden" style="margin-top: 15px;">
                     <div class="form-group">
-                        <label for="nome_campeonato">Nome do Campeonato (Ex: Série B - Rodada 5)</label>
-                        <input type="text" name="nome_campeonato" placeholder="Série B - Rodada 5">
+                        <label for="torneio_classificacao">Selecione o Campeonato</label>
+                        <select name="nome_campeonato" id="torneio_classificacao" onchange="populatePlayers()">
+                            <option value="">Selecione...</option>
+                            {% for t in todos_torneios %}
+                                <option value="{{ t.nome }}">{{ t.nome }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <hr style="border-color: var(--cor-borda-escura); margin-bottom: 15px;">
                     <div id="classification-list-container">
-                        <label>Jogadores e Pontos</label>
-                        <div id="classification-list">
+                        <label>Insira os pontos de cada participante</label>
+                        <div id="classification-list" style="margin-top: 10px;">
                             </div>
-                        <button type="button" onclick="addPlayerRow()">+ Adicionar Jogador</button>
                     </div>
                 </div>
             </div>
@@ -95,50 +98,54 @@
     </div>
 
     <script>
-        const todosJogadores = {{ todos_jogadores | tojson }};
+        // Transforma os dados do Python em um objeto JavaScript para o script usar
+        const torneiosData = {{ todos_torneios | tojson }};
 
         function toggleClassification() {
             const container = document.getElementById('classificacao-container');
-            if (document.getElementById('check_classificacao').checked) {
-                container.classList.remove('hidden');
-                if (document.getElementById('classification-list').children.length === 0) {
-                    addPlayerRow();
-                }
-            } else {
-                container.classList.add('hidden');
-            }
+            const isChecked = document.getElementById('check_classificacao').checked;
+            container.classList.toggle('hidden', !isChecked);
         }
 
-        function addPlayerRow() {
-            const list = document.getElementById('classification-list');
-            const newRow = document.createElement('div');
-            newRow.className = 'classification-row';
+        function populatePlayers() {
+            const selectTorneio = document.getElementById('torneio_classificacao');
+            const nomeTorneio = selectTorneio.value;
+            const listContainer = document.getElementById('classification-list');
+            listContainer.innerHTML = ''; // Limpa a lista anterior
+
+            if (!nomeTorneio) return;
+
+            // Encontra o torneio selecionado nos dados que o Python nos enviou
+            const torneio = torneiosData.find(t => t.nome === nomeTorneio);
             
-            const select = document.createElement('select');
-            select.name = 'classificacao_jogador';
-            
-            // Adiciona uma opção vazia
-            const placeholder = document.createElement('option');
-            placeholder.value = "";
-            placeholder.innerText = "Selecione um jogador";
-            select.appendChild(placeholder);
+            if (torneio && torneio.participantes && torneio.participantes.length > 0) {
+                // Cria uma linha para cada participante do torneio
+                torneio.participantes.forEach(jogador => {
+                    const newRow = document.createElement('div');
+                    newRow.className = 'classification-row';
+                    
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'classificacao_jogador';
+                    hiddenInput.value = jogador;
 
-            todosJogadores.forEach(jogador => {
-                const option = document.createElement('option');
-                option.value = jogador;
-                option.innerText = jogador;
-                select.appendChild(option);
-            });
+                    const label = document.createElement('label');
+                    label.innerText = jogador;
 
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.name = 'classificacao_pontos';
-            input.placeholder = 'Pontos';
-            input.value = '0';
+                    const pointsInput = document.createElement('input');
+                    pointsInput.type = 'number';
+                    pointsInput.name = 'classificacao_pontos';
+                    pointsInput.placeholder = 'Pontos';
+                    pointsInput.value = '0';
 
-            newRow.appendChild(select);
-            newRow.appendChild(input);
-            list.appendChild(newRow);
+                    newRow.appendChild(hiddenInput);
+                    newRow.appendChild(label);
+                    newRow.appendChild(pointsInput);
+                    listContainer.appendChild(newRow);
+                });
+            } else {
+                listContainer.innerHTML = '<p style="color: var(--cor-texto-secundario-claro); font-size: 14px;">Nenhum participante cadastrado para este torneio. Adicione na página de "Gerenciar Torneios".</p>';
+            }
         }
     </script>
 </body>
