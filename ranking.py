@@ -18,9 +18,9 @@ def carregar_regras_torneios():
     caminho_arquivo = os.path.join(BASE_DIR, 'torneios.json')
     try:
         with open(caminho_arquivo, 'r', encoding='utf-8') as f:
-            regras_lista = json.load(f)
-            return {torneio['nome']: torneio for torneio in regras_lista}
-    except FileNotFoundError: return {}
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
 
 def carregar_ratings():
     caminho_arquivo = os.path.join(BASE_DIR, 'ratings.json')
@@ -75,7 +75,9 @@ def atualizar_ratings(rating_a, rating_b, resultado_a, k_a, k_b, prob_a_vence):
     return round(novo_rating_a), round(novo_rating_b)
 
 def registrar_partida(jogador_a, jogador_b, resultado_a, torneio, forca_time_a, forca_time_b, placar_a, placar_b, fase):
-    regras_dos_torneios = carregar_regras_torneios()
+    regras_lista = carregar_regras_torneios()
+    regras_dos_torneios = {t['nome']: t for t in regras_lista}
+    
     ratings = carregar_ratings()
     salvar_historico(ratings)
     if jogador_a not in ratings or jogador_b not in ratings: return
@@ -99,7 +101,9 @@ def registrar_partida(jogador_a, jogador_b, resultado_a, torneio, forca_time_a, 
     logar_partida(jogador_a, jogador_b, resultado_a, torneio, placar_a, placar_b, fase)
 
 def aplicar_bonus_campeonato(torneio_nome, data_fim, campeao, vice, semi1, semi2, terceiro=None, quarto=None):
-    regras_torneios = carregar_regras_torneios()
+    regras_lista = carregar_regras_torneios()
+    regras_torneios = {t['nome']: t for t in regras_lista}
+    
     ratings = carregar_ratings()
     torneio_regras = regras_torneios.get(torneio_nome)
     if not torneio_regras: return

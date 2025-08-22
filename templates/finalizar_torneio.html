@@ -3,8 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <title>Finalizar Torneio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        /* O CSS com o tema escuro continua o mesmo */
+        :root {
+            --cor-fundo-escuro: #1a1a1d; --cor-container-escuro: #2c2f33; --cor-texto-principal-claro: #e0e0e0;
+            --cor-texto-secundario-claro: #a0a0a0; --cor-borda-escura: #4a4a4a; --cor-header-tabela: #2563eb;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo-escuro); color: var(--cor-texto-principal-claro); margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 40px auto; background: var(--cor-container-escuro); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid var(--cor-borda-escura); }
+        h1 { text-align: center; border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; margin-top: 0; }
+        form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        .full-width { grid-column: 1 / -1; }
+        label { margin-bottom: 5px; color: var(--cor-texto-secundario-claro); font-weight: 500; }
+        select, input, button { padding: 12px; border-radius: 6px; border: 1px solid var(--cor-borda-escura); font-size: 16px; width: 100%; box-sizing: border-box; background-color: #3d3d4d; color: var(--cor-texto-principal-claro); font-family: 'Inter', sans-serif; }
+        button { background-color: var(--cor-header-tabela); color: white; font-weight: bold; cursor: pointer; border: none; transition: background-color 0.2s; }
+        button:hover { background-color: #1e40af; }
+        .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -20,20 +39,46 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="campeao" id="label_campeao">🏆 Campeão</label>
-                <select name="campeao" id="campeao" required>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                <label for="campeao" id="label_pos1">🏆 Campeão</label>
+                <select name="campeao" id="campeao" required>
+                    <option value="">N/A</option>
+                    {% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}
+                </select>
             </div>
             <div class="form-group">
-                <label for="vice" id="label_vice">🥈 Vice-Campeão</label>
-                <select name="vice" id="vice" required>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                <label for="vice" id="label_pos2">🥈 Vice-Campeão</label>
+                <select name="vice" id="vice" required>
+                    <option value="">N/A</option>
+                    {% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}
+                </select>
             </div>
-             <div class="form-group">
-                <label for="semi1" id="label_semi1">🥉 Semifinalista 1</label>
-                <select name="semi1" id="semi1" required>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+             <div class="form-group" id="container_pos3_mata">
+                <label for="semi1" id="label_pos3_mata">🥉 Semifinalista 1</label>
+                <select name="semi1" id="semi1">
+                    <option value="">N/A</option>
+                    {% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}
+                </select>
             </div>
-             <div class="form-group">
-                <label for="semi2" id="label_semi2">🥉 Semifinalista 2</label>
-                <select name="semi2" id="semi2" required>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+             <div class="form-group" id="container_pos4_mata">
+                <label for="semi2" id="label_pos4_mata">🥉 Semifinalista 2</label>
+                <select name="semi2" id="semi2">
+                    <option value="">N/A</option>
+                    {% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-group hidden" id="container_pos3_pontos">
+                <label for="terceiro">🥉 3º Lugar</label>
+                <select name="terceiro" id="terceiro">
+                    <option value="">N/A</option>
+                    {% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-group hidden" id="container_pos4_pontos">
+                <label for="quarto">🏅 4º Lugar</label>
+                <select name="quarto" id="quarto">
+                    <option value="">N/A</option>
+                    {% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}
+                </select>
             </div>
              <div class="form-group full-width">
                 <label for="data_fim">Data de Término</label>
@@ -51,16 +96,21 @@
             const select = document.getElementById('torneio_nome');
             const tipo = select.options[select.selectedIndex].getAttribute('data-tipo');
 
+            const containerPos3Mata = document.getElementById('container_pos3_mata');
+            const containerPos4Mata = document.getElementById('container_pos4_mata');
+            const containerPos3Pontos = document.getElementById('container_pos3_pontos');
+            const containerPos4Pontos = document.getElementById('container_pos4_pontos');
+
             if (tipo === 'Pontos Corridos') {
-                document.getElementById('label_campeao').innerText = '🏆 1º Lugar';
-                document.getElementById('label_vice').innerText = '🥈 2º Lugar';
-                document.getElementById('label_semi1').innerText = '🥉 3º Lugar';
-                document.getElementById('label_semi2').innerText = '🏅 4º Lugar';
+                containerPos3Mata.classList.add('hidden');
+                containerPos4Mata.classList.add('hidden');
+                containerPos3Pontos.classList.remove('hidden');
+                containerPos4Pontos.classList.remove('hidden');
             } else { // Mata-Mata
-                document.getElementById('label_campeao').innerText = '🏆 Campeão';
-                document.getElementById('label_vice').innerText = '🥈 Vice-Campeão';
-                document.getElementById('label_semi1').innerText = '🥉 Semifinalista 1';
-                document.getElementById('label_semi2').innerText = '🥉 Semifinalista 2';
+                containerPos3Mata.classList.remove('hidden');
+                containerPos4Mata.classList.remove('hidden');
+                containerPos3Pontos.classList.add('hidden');
+                containerPos4Pontos.classList.add('hidden');
             }
         }
         // Executa a função uma vez na carga inicial da página
