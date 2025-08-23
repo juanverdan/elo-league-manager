@@ -100,38 +100,60 @@ def registrar_partida(jogador_a, jogador_b, resultado_a, torneio, forca_time_a, 
     salvar_ratings(ratings)
     logar_partida(jogador_a, jogador_b, resultado_a, torneio, placar_a, placar_b, fase)
 
-def aplicar_bonus_campeonato(torneio_nome, data_fim, campeao, vice, semi1, semi2, terceiro=None, quarto=None):
+def aplicar_bonus_campeonato(torneio_nome, data_fim, resultados):
     regras_lista = carregar_regras_torneios()
-    regras_torneios = {t['nome']: t for t in regras_lista}
+    regras_dos_torneios = {t['nome']: t for t in regras_lista}
     
     ratings = carregar_ratings()
-    torneio_regras = regras_torneios.get(torneio_nome)
-    if not torneio_regras: return
+    torneio_regras = regras_dos_torneios.get(torneio_nome)
+    if not torneio_regras: 
+        print(f"Erro: Regras para o torneio '{torneio_nome}' não encontradas.")
+        return
+    
     salvar_historico(ratings)
-    vencedores = {}
+    colocacoes_finais = []
+
     if torneio_regras.get('tipo') == 'Pontos Corridos':
-        vencedores = {
-            campeao: ('1º Lugar', torneio_regras['bonus_campeao']),
-            vice: ('2º Lugar', torneio_regras['bonus_vice']),
-            terceiro: ('3º Lugar', torneio_regras.get('bonus_semi', 0)),
-            quarto: ('4º Lugar', torneio_regras.get('bonus_quarto', 0))
-        }
+        for jogador, colocacao in resultados.items():
+            if not colocacao or not jogador or jogador == 'N/A': continue
+            
+            colocacao_formatada = f"{colocacao}º Lugar"
+            colocacoes_finais.append((jogador, colocacao_formatada))
+            
+            posicao = int(colocacao)
+            if posicao == 1: ratings[jogador] += torneio_regras.get('bonus_campeao', 0)
+            elif posicao == 2: ratings[jogador] += torneio_regras.get('bonus_vice', 0)
+            elif posicao == 3: ratings[jogador] += torneio_regras.get('bonus_semi', 0)
+            elif posicao == 4: ratings[jogador] += torneio_regras.get('bonus_quarto', 0)
+
     else: # Mata-Mata
-        vencedores = {
-            campeao: ('Campeão', torneio_regras['bonus_campeao']),
-            vice: ('Vice-Campeão', torneio_regras['bonus_vice']),
-            semi1: ('Semifinalista', torneio_regras.get('bonus_semi', 0)),
-            semi2: ('Semifinalista', torneio_regras.get('bonus_semi', 0))
-        }
-    for jogador, (colocacao, bonus) in vencedores.items():
-        if jogador and jogador != "N/A" and jogador in ratings:
-            ratings[jogador] += bonus
+        campeao = resultados.get('mm_campeao')
+        vice = resultados.get('mm_vice')
+        semifinalistas = resultados.get('mm_semi', [])
+        quartas = resultados.get('mm_quartas', [])
+        
+        if campeao and campeao != "N/A":
+            ratings[campeao] += torneio_regras.get('bonus_campeao', 0)
+            colocacoes_finais.append((campeao, 'Campeão'))
+        if vice and vice != "N/A":
+            ratings[vice] += torneio_regras.get('bonus_vice', 0)
+            colocacoes_finais.append((vice, 'Vice-Campeão'))
+        for jogador in semifinalistas:
+            if jogador and jogador != "N/A": 
+                ratings[jogador] += torneio_regras.get('bonus_semi', 0)
+                colocacoes_finais.append((jogador, 'Semifinalista'))
+        for jogador in quartas:
+            if jogador and jogador != "N/A": 
+                colocacoes_finais.append((jogador, 'Quartas de Final'))
+    
     salvar_ratings(ratings)
+    
     caminho_arquivo = os.path.join(BASE_DIR, 'resultados_torneios.csv')
     header = not os.path.exists(caminho_arquivo) or os.path.getsize(caminho_arquivo) == 0
     with open(caminho_arquivo, 'a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         if header: writer.writerow(['jogador', 'torneio', 'colocacao', 'data'])
-        for jogador, (colocacao, bonus) in vencedores.items():
-            if jogador and jogador != "N/A":
-                writer.writerow([jogador, torneio_nome, colocacao, data_fim])
+        for jogador, colocacao in colocacoes_finais:
+            writer.writerow([jogador, torneio_nome, colocacao, data_fim])
+    
+    print("Resultados do torneio salvos com sucesso!")

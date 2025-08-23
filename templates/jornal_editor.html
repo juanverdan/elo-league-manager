@@ -28,8 +28,11 @@
         input[type="file"] { padding: 5px; }
         .hidden { display: none; }
         .classification-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        .classification-row label { flex: 3; margin-bottom: 0; font-weight: normal; color: var(--cor-texto-principal-claro); }
-        .classification-row input { flex: 1; }
+        .classification-row .pos-input { flex: 0.5; text-align: center; }
+        .classification-row .player-name-hidden { flex: 3; }
+        .classification-row .player-label { flex: 3; margin-bottom: 0; font-weight: normal; color: var(--cor-texto-principal-claro); }
+        .classification-row input[type="number"] { flex: 1; }
+        #classification-list-container button { font-size: 14px; padding: 8px 12px; width: auto; background-color: #007bff; }
     </style>
 </head>
 <body>
@@ -85,7 +88,7 @@
                     </div>
                     <hr style="border-color: var(--cor-borda-escura); margin-bottom: 15px;">
                     <div id="classification-list-container">
-                        <label>Insira os pontos de cada participante</label>
+                        <label>Insira a posição e os pontos de cada participante</label>
                         <div id="classification-list" style="margin-top: 10px;">
                             </div>
                     </div>
@@ -98,7 +101,6 @@
     </div>
 
     <script>
-        // Transforma os dados do Python em um objeto JavaScript para o script usar
         const torneiosData = {{ todos_torneios | tojson }};
 
         function toggleClassification() {
@@ -111,19 +113,24 @@
             const selectTorneio = document.getElementById('torneio_classificacao');
             const nomeTorneio = selectTorneio.value;
             const listContainer = document.getElementById('classification-list');
-            listContainer.innerHTML = ''; // Limpa a lista anterior
+            listContainer.innerHTML = '';
 
             if (!nomeTorneio) return;
 
-            // Encontra o torneio selecionado nos dados que o Python nos enviou
             const torneio = torneiosData.find(t => t.nome === nomeTorneio);
             
             if (torneio && torneio.participantes && torneio.participantes.length > 0) {
-                // Cria uma linha para cada participante do torneio
-                torneio.participantes.forEach(jogador => {
+                torneio.participantes.forEach((jogador, index) => {
                     const newRow = document.createElement('div');
                     newRow.className = 'classification-row';
                     
+                    const posInput = document.createElement('input');
+                    posInput.type = 'number';
+                    posInput.name = 'classificacao_posicao';
+                    posInput.placeholder = 'Pos.';
+                    posInput.className = 'pos-input';
+                    posInput.value = index + 1;
+
                     const hiddenInput = document.createElement('input');
                     hiddenInput.type = 'hidden';
                     hiddenInput.name = 'classificacao_jogador';
@@ -131,6 +138,7 @@
 
                     const label = document.createElement('label');
                     label.innerText = jogador;
+                    label.className = 'player-label';
 
                     const pointsInput = document.createElement('input');
                     pointsInput.type = 'number';
@@ -138,6 +146,7 @@
                     pointsInput.placeholder = 'Pontos';
                     pointsInput.value = '0';
 
+                    newRow.appendChild(posInput);
                     newRow.appendChild(hiddenInput);
                     newRow.appendChild(label);
                     newRow.appendChild(pointsInput);

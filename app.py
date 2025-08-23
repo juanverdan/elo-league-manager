@@ -1,12 +1,17 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from flask import Flask, render_template, request, redirect, url_for, flash, make_response, session
 import functools
 import json
 import csv
 import random
-import os
+import requests
 from werkzeug.utils import secure_filename
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from unidecode import unidecode
 from weasyprint import HTML
 from ranking import (
@@ -16,11 +21,16 @@ from ranking import (
 )
 
 app = Flask(__name__)
-app.secret_key = 'sua_chave_secreta_pode_ser_qualquer_coisa_aleatoria'
+
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'uma_chave_secreta_padrao_se_nao_definida')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
+API_FOOTBALL_KEY = os.getenv('API_FOOTBALL_KEY')
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static/uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-ADMIN_PASSWORD = '123'
+
+# ... (Todas as outras funções continuam exatamente iguais) ...
 
 def login_required(view):
     @functools.wraps(view)
@@ -31,15 +41,37 @@ def login_required(view):
         return view(**kwargs)
     return wrapped_view
 
+def carregar_escudos():
+    caminho_arquivo = os.path.join(BASE_DIR, 'escudos.json')
+    try:
+        with open(caminho_arquivo, 'r', encoding='utf-8') as f: return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError): return {}
+
+def salvar_escudos(escudos_data):
+    caminho_arquivo = os.path.join(BASE_DIR, 'escudos.json')
+    with open(caminho_arquivo, 'w', encoding='utf-8') as f:
+        json.dump(escudos_data, f, indent=2, ensure_ascii=False)
+
 def carregar_dados_completos():
     ratings_dict = carregar_ratings()
     historico = carregar_historico()
     posicao_anterior = {}
+    rating_anterior = {}
+    ranking_referencia = None
+    agora = datetime.now()
     if historico:
-        ultimo_ranking_salvo = historico[-1]['ratings']
-        ranking_antigo_ordenado = sorted(ultimo_ranking_salvo.items(), key=lambda item: item[1], reverse=True)
-        for i, (jogador, _) in enumerate(ranking_antigo_ordenado):
+        for snapshot in reversed(historico):
+            timestamp_snapshot = datetime.fromisoformat(snapshot['timestamp'])
+            if agora - timestamp_snapshot > timedelta(hours=24):
+                ranking_referencia = snapshot['ratings']
+                break
+        if not ranking_referencia and historico:
+            ranking_referencia = historico[0]['ratings']
+    if ranking_referencia:
+        ranking_antigo_ordenado = sorted(ranking_referencia.items(), key=lambda item: item[1], reverse=True)
+        for i, (jogador, rating) in enumerate(ranking_antigo_ordenado):
             posicao_anterior[jogador] = i + 1
+            rating_anterior[jogador] = rating
     ranking_atual_ordenado = sorted(ratings_dict.items(), key=lambda item: item[1], reverse=True)
     contagem_jogos = contar_partidas_jogadas()
     forma_recente = defaultdict(list)
@@ -63,9 +95,11 @@ def carregar_dados_completos():
         jogos_do_jogador = contagem_jogos.get(jogador, 0)
         nome_sem_acento = unidecode(jogador)
         avatar_filename = nome_sem_acento.lower().replace(' ', '_') + '.png'
+        rating_de_referencia = rating_anterior.get(jogador, rating_atual)
+        mudanca_pontos_24h = rating_atual - rating_de_referencia
         ranking_final.append({
             'nome': jogador, 'pontos': rating_atual,'avatar_filename': avatar_filename,
-            'mudanca_pontos': rating_atual - RATING_INICIAL_ATIVO if jogos_do_jogador > 0 else 0,
+            'mudanca_pontos': mudanca_pontos_24h,
             'forma': forma_recente[jogador][-5:], 'posicao_atual': posicao_atual,
             'mudanca_posicao': {'status': status, 'diff': diff},
             'provisional': jogos_do_jogador < JOGOS_PROVISIONAIS
@@ -82,6 +116,7 @@ def index():
 
 @app.route('/player/<nome_do_jogador>')
 def player_profile(nome_do_jogador):
+    escudos = carregar_escudos()
     historico_conquistas = []
     titulos_ganhos = []
     regras_dos_torneios_lista = carregar_regras_torneios()
@@ -102,17 +137,23 @@ def player_profile(nome_do_jogador):
                             })
     except FileNotFoundError: pass
     historico_rating = carregar_historico()
-    labels_grafico = []; dados_grafico = []
+    daily_ratings = {}
     for snapshot in historico_rating:
         if nome_do_jogador in snapshot['ratings']:
-            timestamp = datetime.fromisoformat(snapshot['timestamp']).strftime('%d/%m %H:%M')
-            labels_grafico.append(timestamp)
-            dados_grafico.append(snapshot['ratings'][nome_do_jogador])
+            date_key = datetime.fromisoformat(snapshot['timestamp']).strftime('%Y-%m-%d')
+            daily_ratings[date_key] = snapshot['ratings'][nome_do_jogador]
+    labels_grafico = []
+    dados_grafico = []
+    for date_key, rating in sorted(daily_ratings.items()):
+        formatted_date = datetime.strptime(date_key, '%Y-%m-%d').strftime('%d/%m')
+        labels_grafico.append(formatted_date)
+        dados_grafico.append(rating)
     ranking_atual, _ = carregar_dados_completos()
     for jogador_data in ranking_atual:
         if jogador_data['nome'] == nome_do_jogador:
-            labels_grafico.append("Agora")
-            dados_grafico.append(jogador_data['pontos'])
+            if not labels_grafico or datetime.now().strftime('%d/%m') != labels_grafico[-1]:
+                labels_grafico.append("Hoje")
+                dados_grafico.append(jogador_data['pontos'])
             break
     h2h_stats = defaultdict(lambda: {'V': 0, 'E': 0, 'D': 0})
     all_matches_details = []
@@ -145,7 +186,8 @@ def player_profile(nome_do_jogador):
         'player.html', jogador_nome=nome_do_jogador, historico=historico_conquistas,
         labels_grafico=labels_grafico, dados_grafico=dados_grafico,
         avatar_filename=avatar_filename, h2h_stats=h2h_stats,
-        all_matches_details=all_matches_details, titulos_ganhos=titulos_ganhos
+        all_matches_details=all_matches_details, titulos_ganhos=titulos_ganhos,
+        escudos=escudos
     )
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -216,20 +258,109 @@ def gerenciar_torneios():
     _, todos_jogadores = carregar_dados_completos()
     return render_template('gerenciar_torneios.html', torneios=regras_atuais, todos_jogadores=todos_jogadores)
 
+@app.route('/admin/escudos', methods=['GET', 'POST'])
+@login_required
+def gerenciar_escudos():
+    escudos = carregar_escudos()
+    
+    if request.method == 'POST':
+        nome_time_busca = request.form.get('nome_time')
+        pais = request.form.get('pais')
+
+        if not API_FOOTBALL_KEY or API_FOOTBALL_KEY == "SUA_API_KEY_AQUI":
+            flash("Erro: A chave da API de Futebol não está configurada no arquivo .env.", 'error')
+            return redirect(url_for('gerenciar_escudos'))
+            
+        url = "https://v3.football.api-sports.io/teams"
+        headers = {
+            'x-rapidapi-host': "v3.football.api-sports.io",
+            'x-apisports-key': API_FOOTBALL_KEY
+        }
+        
+        # <--- A CORREÇÃO FINAL ESTÁ AQUI ---
+        # Trocamos 'search' por 'name' para poder usar junto com 'country'
+        params = {
+            "name": nome_time_busca,
+            "country": pais 
+        }
+        # <--- FIM DA CORREÇÃO ---
+
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get('errors') and len(data.get('errors')) > 0:
+                error_message = str(data['errors'])
+                flash(f"A API retornou um erro: {error_message}", 'error')
+
+            elif data.get('results', 0) > 0 and data.get('response'):
+                time_info = data['response'][0]['team']
+                nome_oficial = time_info['name']
+                url_escudo = time_info['logo']
+                
+                is_national = time_info.get('national', False)
+                if is_national:
+                    nome_oficial = f"{time_info['name']} (Seleção)"
+
+                escudos[nome_oficial] = url_escudo
+                salvar_escudos(escudos)
+                flash(f"Escudo para '{nome_oficial}' salvo com sucesso!", 'success')
+            else:
+                flash(f"Nenhum time encontrado para '{nome_time_busca}' no país '{pais}'.", 'error')
+
+        except requests.exceptions.HTTPError as http_err:
+            flash(f"Erro HTTP ao contatar a API: {http_err}.", 'error')
+        except requests.exceptions.RequestException as e:
+            flash(f"Erro de conexão com a API: {e}", 'error')
+        
+        return redirect(url_for('gerenciar_escudos'))
+
+    return render_template('gerenciar_escudos.html', escudos=escudos)
+
+# ... (O resto do seu código a partir daqui continua igual) ...
 @app.route('/admin/finalizar', methods=['GET', 'POST'])
 @login_required
 def finalizar_torneio():
+    regras_torneios_lista = carregar_regras_torneios()
     if request.method == 'POST':
-        torneio = request.form['torneio_nome']; data = request.form['data_fim']
-        primeiro = request.form.get('primeiro'); segundo = request.form.get('segundo')
-        terceiro = request.form.get('terceiro'); quarto = request.form.get('quarto')
-        campeao = request.form.get('campeao'); vice = request.form.get('vice')
-        semi1 = request.form.get('semi1'); semi2 = request.form.get('semi2')
-        aplicar_bonus_campeonato(torneio, data, campeao or primeiro, vice or segundo, semi1, semi2, terceiro, quarto)
-        flash(f"Torneio '{torneio}' finalizado e bônus aplicados com sucesso!", 'success')
+        torneio_nome = request.form.get('torneio_nome')
+        data_fim = request.form.get('data_fim')
+        torneio_selecionado = next((t for t in regras_torneios_lista if t['nome'] == torneio_nome), None)
+        tipo_torneio = torneio_selecionado.get('tipo') if torneio_selecionado else ''
+        resultados = {}
+        if tipo_torneio == 'Pontos Corridos':
+            if torneio_selecionado:
+                for participante in torneio_selecionado.get('participantes', []):
+                    colocacao = request.form.get(f'pc_colocacao_{participante}')
+                    time = request.form.get(f'pc_time_{participante}')
+                    if colocacao and time:
+                        resultados[participante] = {'colocacao': colocacao, 'time': time}
+        else:
+            posicoes = {
+                'campeao': request.form.get('mm_campeao'),
+                'vice': request.form.get('mm_vice'),
+                'semi': request.form.getlist('mm_semi'),
+                'quartas': request.form.getlist('mm_quartas')
+            }
+            times = {
+                'campeao': request.form.get('mm_time_campeao'),
+                'vice': request.form.get('mm_time_vice'),
+            }
+            if posicoes['campeao']:
+                resultados[posicoes['campeao']] = {'colocacao': 'Campeão', 'time': times['campeao']}
+            if posicoes['vice']:
+                resultados[posicoes['vice']] = {'colocacao': 'Vice-Campeão', 'time': times['vice']}
+            for jogador in posicoes['semi']:
+                if jogador:
+                    resultados[jogador] = {'colocacao': 'Semifinalista', 'time': 'N/A'}
+            for jogador in posicoes['quartas']:
+                 if jogador:
+                    resultados[jogador] = {'colocacao': 'Quartas de Final', 'time': 'N/A'}
+        aplicar_bonus_campeonato(torneio_nome, data_fim, resultados)
+        flash(f"Torneio '{torneio_nome}' finalizado e bônus aplicados com sucesso!", 'success')
         return redirect(url_for('index'))
     _, jogadores = carregar_dados_completos()
-    regras_torneios_lista = carregar_regras_torneios()
     return render_template('finalizar_torneio.html', jogadores=jogadores, torneios=regras_torneios_lista)
     
 @app.route('/admin/jogadores', methods=['GET', 'POST'])
@@ -343,17 +474,19 @@ def jornal_liga():
         if 'incluir_classificacao' in request.form:
             jogadores_classificacao = request.form.getlist('classificacao_jogador')
             pontos_classificacao = request.form.getlist('classificacao_pontos')
+            posicoes_classificacao = request.form.getlist('classificacao_posicao')
             tabela = []
             for i in range(len(jogadores_classificacao)):
-                if jogadores_classificacao[i] and pontos_classificacao[i]:
+                if jogadores_classificacao[i] and pontos_classificacao[i] and posicoes_classificacao[i]:
                     nome_sem_acento = unidecode(jogadores_classificacao[i])
                     avatar_filename = nome_sem_acento.lower().replace(' ', '_') + '.png'
                     avatar_abs_path = os.path.join(BASE_DIR, 'static/images/avatars', avatar_filename)
                     tabela.append({
                         'jogador': jogadores_classificacao[i], 'pontos': int(pontos_classificacao[i]),
+                        'posicao': int(posicoes_classificacao[i]),
                         'avatar_path': f"file:///{avatar_abs_path}"
                     })
-            tabela.sort(key=lambda x: x['pontos'], reverse=True)
+            tabela.sort(key=lambda x: x['posicao'])
             dados_jornal['classificacao_campeonato'] = {
                 "nome": request.form.get('nome_campeonato', 'Classificação'), "tabela": tabela
             }

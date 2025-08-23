@@ -9,77 +9,75 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --cor-fundo-escuro: #1a1a1d; --cor-container-escuro: #2c2f33; --cor-texto-principal-claro: #e0e0e0;
-            --cor-texto-secundario-claro: #a0a0a0; --cor-borda-escura: #4a4a4a; --cor-header-tabela: #ddecec;
+            --cor-fundo-escuro: #121212;
+            --cor-container-escuro: #1e1e1e;
+            --cor-container-secundario: #2a2a2e;
+            --cor-texto-principal-claro: #e0e0e0;
+            --cor-texto-secundario-claro: #a0a0a0;
+            --cor-borda-escura: #3a3a3a;
+            --cor-header-tabela: #2563eb;
             --cor-gold: #ffc107; --cor-silver: #c0c0c0; --cor-bronze: #cd7f32;
             --cor-vitoria: #22c55e; --cor-empate: #9ca3af; --cor-derrota: #ef4444;
         }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--cor-fundo-escuro); background-image: linear-gradient(160deg, var(--cor-fundo-escuro) 0%, #3d3d4d 100%); color: var(--cor-texto-principal-claro); margin: 0; padding: 20px; min-height: 100vh; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--cor-fundo-escuro); color: var(--cor-texto-principal-claro); margin: 0; padding: 20px; min-height: 100vh; }
         .container { max-width: 1000px; margin: 20px auto; background: var(--cor-container-escuro); color: var(--cor-texto-principal-claro); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid var(--cor-borda-escura); }
         h1, h2 { text-align: center; border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; margin-top: 0; color: var(--cor-texto-principal-claro); }
         .profile-header { display: flex; flex-direction: column; align-items: center; gap: 10px; }
         .profile-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid var(--cor-header-tabela); }
-        
-        /* --- PRATELEIRA DE TROFÉUS --- */
-        .trophy-shelf {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
+        .trophy-shelf { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; padding: 20px; margin-top: 20px; margin-bottom: 20px; background-color: var(--cor-container-secundario); border-radius: 8px; }
+        .trophy-item img { height: 60px; width: 60px; object-fit: contain; transition: transform 0.2s; }
+        .trophy-item img:hover { transform: scale(1.1); }
+        .content-wrapper { display: flex; gap: 30px; align-items: stretch; margin-top: 30px; flex-wrap: wrap; }
+        .panel {
+            background-color: var(--cor-container-secundario);
             padding: 20px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            background-color: #3e4147; 
             border-radius: 8px;
-        }
-        .trophy-item {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
         }
-        .trophy-item img {
-            height: 60px;  /* Tamanho menor e padronizado */
-            width: 60px;
-            object-fit: contain; /* Garante que a imagem não fique achatada */
-            transition: transform 0.2s;
-        }
-        .trophy-item img:hover {
-            transform: scale(1.1);
-        }
-
-        .content-wrapper { display: flex; gap: 30px; align-items: baseline; margin-top: 30px; flex-wrap: wrap; }
         .chart-container { flex: 2; min-width: 0; min-width: 400px; }
         .achievements-container { flex: 1; min-width: 300px;}
         .achievements-container h2 { margin-top: 0; }
-        .event-list { list-style: none; padding: 0; }
+        .event-list { list-style: none; padding: 0; margin-top: -15px; }
         .event-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; border-bottom: 1px solid var(--cor-borda-escura); }
         .event-item:last-child { border-bottom: none; }
-        .event-name { font-weight: 500; font-size: 18px; }
-        .event-placement { font-weight: bold; padding: 6px 12px; border-radius: 16px; color: var(--cor-texto-principal-claro); background-color: var(--cor-borda-escura); white-space: nowrap; }
+        .event-name { font-weight: 500; font-size: 16px; }
+        .event-placement { font-weight: bold; padding: 6px 12px; border-radius: 16px; color: var(--cor-texto-principal-claro); background-color: var(--cor-borda-escura); white-space: nowrap; font-size: 14px; }
         .placement-1st { background-color: var(--cor-gold); color: #1c1e21; }
         .placement-2nd { background-color: var(--cor-silver); color: #1c1e21; }
         .placement-bronze { background-color: var(--cor-bronze); color: var(--cor-texto-principal-claro); }
         .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
-        
-        .h2h-wrapper { display: flex; gap: 30px; align-items: flex-start; margin-top: 40px; flex-wrap: wrap; }
-        .h2h-master-container, .h2h-container, .h2h-details-container { margin-top: 0; }
-        .h2h-container { flex: 1.5; min-width: 400px; }
-        .h2h-details-panel { flex: 1; min-width: 300px; background-color: #3e4147; padding: 20px; border-radius: 8px; }
-        .h2h-details-panel h3 { margin-top: 0; text-align: center; font-size: 16px; text-transform: uppercase; color: var(--cor-texto-secundario-claro); border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; }
+        .h2h-master-container { margin-top: 40px; }
+        .h2h-wrapper { display: flex; gap: 30px; align-items: stretch; flex-wrap: wrap; }
+        .h2h-panel { flex: 1; min-width: 350px; background-color: var(--cor-container-secundario); padding: 20px; border-radius: 8px; display: flex; flex-direction: column; }
+        .h2h-panel h3 { margin-top: 0; text-align: center; font-size: 16px; text-transform: uppercase; color: var(--cor-texto-secundario-claro); border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; }
         .filter-group { display: flex; gap: 10px; margin-top: 15px; }
-        .filter-group select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--cor-borda-escura); font-size: 16px; background-color: #2c2f33; color: var(--cor-texto-principal-claro); }
+        .filter-group select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--cor-borda-escura); font-size: 16px; background-color: var(--cor-container-escuro); color: var(--cor-texto-principal-claro); }
+        .h2h-table-container { max-height: 318px; overflow-y: auto; flex-grow: 1; }
         .h2h-table { width: 100%; border-collapse: collapse; font-size: 14px; }
         .h2h-table th, .h2h-table td { padding: 10px; text-align: center; border-bottom: 1px solid var(--cor-borda-escura); }
-        .h2h-table thead { background-color: #3e4147; }
+        .h2h-table thead { position: sticky; top: 0; z-index: 1;}
+        .h2h-table th { background-color: var(--cor-container-secundario); border-bottom: 2px solid var(--cor-header-tabela); }
         .h2h-table td:first-child { text-align: left; font-weight: 500; }
         .h2h-win { color: var(--cor-vitoria); font-weight: bold; }
         .h2h-draw { color: var(--cor-empate); }
         .h2h-loss { color: var(--cor-derrota); font-weight: bold; }
-        #match-details-results { margin-top: 20px; }
-        .match-detail-item { display: flex; justify-content: space-between; align-items: center; background-color: #2c2f33; padding: 10px 15px; border-radius: 6px; margin-bottom: 8px; }
+        #match-details-results { margin-top: 20px; max-height: 280px; overflow-y: auto; padding-right: 5px; }
+        .match-detail-item { display: flex; justify-content: space-between; align-items: center; background-color: var(--cor-container-escuro); padding: 10px 15px; border-radius: 6px; margin-bottom: 8px; }
         .match-detail-torneio { font-size: 14px; color: var(--cor-texto-secundario-claro); }
         .match-detail-resultado { font-weight: bold; font-size: 16px; }
+
+        /* <--- MUDANÇA AQUI: Novo estilo para o escudo no histórico */
+        .event-details {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .team-shield {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
@@ -102,21 +100,26 @@
         {% endif %}
 
         <div class="content-wrapper">
-            <div class="chart-container">
-                <h2>Evolução do Rating</h2>
+            <div class="chart-container panel">
+                <h2 style="margin-bottom: 25px;">Evolução do Rating</h2>
                 <canvas id="eloChart"></canvas>
             </div>
-            <div class="achievements-container">
+            <div class="achievements-container panel">
                 <h2>🏆 Histórico de Conquistas</h2>
                 <ul class="event-list">
                     {% if historico %}
                         {% for resultado in historico %}
                         <li class="event-item">
-                            <span class="event-name">{{ resultado.torneio }}</span>
+                            <div class="event-details">
+                                {% if resultado.time and resultado.time in escudos %}
+                                    <img src="{{ escudos[resultado.time] }}" class="team-shield" alt="{{ resultado.time }}" title="{{ resultado.time }}">
+                                {% endif %}
+                                <span class="event-name">{{ resultado.torneio }}</span>
+                            </div>
                             <span class="event-placement 
-                                {% if '1º' in resultado.colocacao %}placement-1st
-                                {% elif '2º' in resultado.colocacao %}placement-2nd
-                                {% elif '3º' in resultado.colocacao or '4º' in resultado.colocacao %}placement-bronze
+                                {% if '1º' in resultado.colocacao or 'Campeão' in resultado.colocacao %}placement-1st
+                                {% elif '2º' in resultado.colocacao or 'Vice-Campeão' in resultado.colocacao %}placement-2nd
+                                {% elif '3º' in resultado.colocacao or '4º' in resultado.colocacao or 'Semifinalista' in resultado.colocacao %}placement-bronze
                                 {% endif %}">{{ resultado.colocacao }}</span>
                         </li>
                         {% endfor %}
@@ -130,36 +133,37 @@
         <div class="h2h-master-container">
             <h2>📊 Confronto Direto (H2H)</h2>
             <div class="h2h-wrapper">
-                <div class="h2h-summary-panel">
-                    {% if h2h_stats %}
-                        <table class="h2h-table">
-                            <thead>
-                                <tr>
-                                    <th>Adversário</th><th>P</th><th class="h2h-win">V</th><th class="h2h-draw">E</th><th class="h2h-loss">D</th><th>%</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for oponente, stats in h2h_stats.items() | sort %}
-                                <tr>
-                                    <td>{{ oponente }}</td>
-                                    <td>{{ stats.V + stats.E + stats.D }}</td>
-                                    <td class="h2h-win">{{ stats.V }}</td>
-                                    <td class="h2h-draw">{{ stats.E }}</td>
-                                    <td class="h2h-loss">{{ stats.D }}</td>
-                                    <td>
-                                        {% set total_jogos = stats.V + stats.E + stats.D %}
-                                        {% if total_jogos > 0 %}{% set aproveitamento = ((stats.V * 3 + stats.E * 1) / (total_jogos * 3)) * 100 %}{{ '%.0f'|format(aproveitamento) }}%{% else %}-{% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <p style="text-align:center; color: var(--cor-texto-secundario-claro);">Nenhuma partida registrada.</p>
-                    {% endif %}
+                <div class="h2h-panel">
+                    <h3>Resumo Geral</h3>
+                    <div class="h2h-table-container">
+                        {% if h2h_stats %}
+                            <table class="h2h-table">
+                                <thead>
+                                    <tr><th>Adversário</th><th>P</th><th class="h2h-win">V</th><th class="h2h-draw">E</th><th class="h2h-loss">D</th><th>%</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for oponente, stats in h2h_stats.items() | sort %}
+                                    <tr>
+                                        <td>{{ oponente }}</td>
+                                        <td>{{ stats.V + stats.E + stats.D }}</td>
+                                        <td class="h2h-win">{{ stats.V }}</td>
+                                        <td class="h2h-draw">{{ stats.E }}</td>
+                                        <td class="h2h-loss">{{ stats.D }}</td>
+                                        <td>
+                                            {% set total_jogos = stats.V + stats.E + stats.D %}
+                                            {% if total_jogos > 0 %}{% set aproveitamento = ((stats.V * 3 + stats.E * 1) / (total_jogos * 3)) * 100 %}{{ '%.0f'|format(aproveitamento) }}%{% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p style="text-align:center; color: var(--cor-texto-secundario-claro);">Nenhuma partida registrada.</p>
+                        {% endif %}
+                    </div>
                 </div>
                 
-                <div class="h2h-details-panel">
+                <div class="h2h-panel">
                     <h3>Análise Detalhada</h3>
                     <div class="filter-group">
                         <select id="opponent-selector" onchange="applyFilters()">
@@ -216,7 +220,7 @@
                 }
                 return;
             }
-            filteredMatches.forEach(match => {
+            filteredMatches.reverse().forEach(match => {
                 let resultadoTexto = '';
                 if (match.resultado === 1) { resultadoTexto = `<span class="h2h-win">VITÓRIA</span>`; } 
                 else if (match.resultado === 0.5) { resultadoTexto = `<span class="h2h-draw">EMPATE</span>`; } 

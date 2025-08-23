@@ -1,53 +1,53 @@
-jogador,torneio,colocacao
-André,Champions C1,1º Lugar
-André,Série B,1º Lugar
-André,CdB B,5º-8º Lugar
-André,UNICEF Cup,1º Lugar
-Valdo,Série B,2º Lugar
-Valdo,CdB B,2º Lugar
-Valdo,UNICEF Cup,2º Lugar
-Hericles,Champions C1,5º-8º Lugar
-Hericles,Série B,5º Lugar
-Hericles,CdB B,1º Lugar
-Hericles,UNICEF Cup,5º-8º Lugar
-Ramon,Champions C1,5º-8º Lugar
-Ramon,Série B,3º Lugar
-Ramon,CdB B,3º-4º Lugar
-Ramon,UNICEF Cup,Top 16
-Daniel Campos,Champions C1,3º-4º Lugar
-Daniel Campos,Série B,5º Lugar
-Daniel Campos,CdB B,4º Lugar
-Daniel Campos,UNICEF Cup,Top 16
-Indiano,Champions C1,3º-4º Lugar
-Indiano,Série B,8º Lugar
-Indiano,CdB B,Top 20
-Indiano,UNICEF Cup,5º-8º Lugar
-Davi,Champions C1,Fase de Liga
-Davi,Série B,4º Lugar
-Davi,CdB B,5º-8º Lugar
-Davi,UNICEF Cup,5°-8° Lugar
-Tiago,Champions C1,Top 16
-Tiago,Série B,9º Lugar
-Tiago,CdB B,5º-8º Lugar
-Tiago,UNICEF Cup,3º-4º Lugar
-Samuel,Champions C1,5º-8º Lugar
-Samuel,Série B,7º Lugar
-Samuel,CdB B,5º-8º Lugar
-Samuel,UNICEF Cup,Top 16
-Lavieri,Champions C1,Top 16
-Lavieri,Série B,6º Lugar
-Lavieri,CdB B,5º-8º Lugar
-Lavieri,UNICEF Cup,Top 16
-Emanuel,Champions C1,Top 16
-Emanuel,Série B,8º Lugar
-Emanuel,CdB B,4º Lugar
-Temis,Champions C1,5º-8º Lugar
-Temis,UNICEF Cup,Fase de Grupo
-Wesley,Champions C1,Top 16
-Wesley,UNICEF Cup,4º Lugar
-João Carlos,Série B,10º Lugar
-João Carlos,CdB B,Top 20
-Ledin,Champions C1,Top 16
-Ledin,UNICEF Cup,Top 16
-Alex Markes,Champions C1,Top 16
-Alex Markes,UNICEF Cup,Top 16
+jogador,torneio,colocacao,time
+André,Champions C1,1º Lugar,Juventus
+André,Série B,1º Lugar,Amazonas
+André,CdB B,5º-8º Lugar,Amazonas
+André,UNICEF Cup,1º Lugar,Mali (Seleção)
+Valdo,Série B,2º Lugar,Botafogo-SP
+Valdo,CdB B,2º Lugar,Botafogo-SP
+Valdo,UNICEF Cup,2º Lugar,Tunisia (Seleção)
+Hericles,Champions C1,5º-8º Lugar,Inter
+Hericles,Série B,5º Lugar,Cuiaba
+Hericles,CdB B,1º Lugar,Cuiaba
+Hericles,UNICEF Cup,5º-8º Lugar,cabo verde
+Ramon,Champions C1,5º-8º Lugar,Real Madrid
+Ramon,Série B,3º Lugar,remo
+Ramon,CdB B,3º-4º Lugar,remo
+Ramon,UNICEF Cup,Top 16,Zambia (Seleção)
+Daniel Campos,Champions C1,3º-4º Lugar,Manchester City
+Daniel Campos,Série B,5º Lugar,
+Daniel Campos,CdB B,4º Lugar,
+Daniel Campos,UNICEF Cup,Top 16,
+Indiano,Champions C1,3º-4º Lugar,Arsenal
+Indiano,Série B,8º Lugar,Volta Redonda
+Indiano,CdB B,Top 20,Volta Redonda
+Indiano,UNICEF Cup,5º-8º Lugar,
+Davi,Champions C1,Fase de Liga,RB Leipzig
+Davi,Série B,4º Lugar,Coritiba
+Davi,CdB B,5º-8º Lugar,Coritiba
+Davi,UNICEF Cup,5°-8° Lugar,
+Tiago,Champions C1,Top 16,Liverpool
+Tiago,Série B,9º Lugar,Goiás
+Tiago,CdB B,5º-8º Lugar,Goiás
+Tiago,UNICEF Cup,3º-4º Lugar,
+Samuel,Champions C1,5º-8º Lugar,Atletico de Madrid
+Samuel,Série B,7º Lugar,
+Samuel,CdB B,5º-8º Lugar,
+Samuel,UNICEF Cup,Top 16,
+Lavieri,Champions C1,Top 16,Bayern
+Lavieri,Série B,6º Lugar,Novorizontino
+Lavieri,CdB B,5º-8º Lugar,Novorizontino
+Lavieri,UNICEF Cup,Top 16,Cameroon (Seleção)
+Emanuel,Champions C1,Top 16,
+Emanuel,Série B,8º Lugar,
+Emanuel,CdB B,4º Lugar,
+Temis,Champions C1,5º-8º Lugar,Aston Villa
+Temis,UNICEF Cup,Fase de Grupo,
+Wesley,Champions C1,Top 16,
+Wesley,UNICEF Cup,4º Lugar,
+João Carlos,Série B,10º Lugar,
+João Carlos,CdB B,Top 20,
+Ledin,Champions C1,Top 16,
+Ledin,UNICEF Cup,Top 16,
+Alex Markes,Champions C1,Top 16,
+Alex Markes,UNICEF Cup,Top 16,

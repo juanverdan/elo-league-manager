@@ -85,7 +85,7 @@
             break-inside: avoid-column;
         }
         .optional-section {
-            break-before: column; /* Tenta forçar a quebra de coluna antes da seção */
+            break-before: column;
             margin-top: 25px;
             padding-top: 20px;
             border-top: 2px solid #333;
@@ -119,7 +119,7 @@
         .styled-table tbody tr {
             border-bottom: 1px solid #ddd;
         }
-        .styled-table tbody tr:nth-of-type(even) { /* Efeito "Zebra" */
+        .styled-table tbody tr:nth-of-type(even) {
             background-color: #f3f3f3;
         }
         .styled-table tbody tr:last-of-type {
@@ -183,7 +183,7 @@
             <tbody>
                 {% for item in classificacao_campeonato.tabela %}
                 <tr>
-                    <td class="rank-cell">{{ loop.index }}º</td>
+                    <td class="rank-cell">{{ item.posicao }}º</td>
                     <td>
                         <div class="player-cell">
                             <img src="{{ item.avatar_path }}" class="table-avatar">

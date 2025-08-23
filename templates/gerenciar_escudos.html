@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Arsenal de Escudos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --cor-fundo-escuro: #1a1a1d; --cor-container-escuro: #2c2f33; --cor-texto-principal-claro: #e0e0e0;
+            --cor-texto-secundario-claro: #a0a0a0; --cor-borda-escura: #4a4a4a; --cor-header-tabela: #2563eb;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo-escuro); color: var(--cor-texto-principal-claro); margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 20px auto; background: var(--cor-container-escuro); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid var(--cor-borda-escura); }
+        h1, h2 { text-align: center; border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; margin-top: 0; margin-bottom: 25px; }
+        .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
+        .form-search { display: flex; gap: 10px; margin-bottom: 30px; }
+        input[type="text"] { flex-grow: 1; padding: 12px; border-radius: 6px; border: 1px solid var(--cor-borda-escura); font-size: 16px; background-color: #3d3d4d; color: var(--cor-texto-principal-claro); }
+        button { padding: 12px 20px; border-radius: 6px; border: none; font-size: 16px; color: white; font-weight: bold; cursor: pointer; background-color: #007bff; transition: background-color 0.2s; }
+        button:hover { background-color: #0069d9; }
+        .escudo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .escudo-item {
+            background-color: #3d3d4d;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--cor-borda-escura);
+        }
+        .escudo-item img {
+            height: 70px;
+            width: 70px;
+            object-fit: contain;
+        }
+        .escudo-item p {
+            margin-top: 10px;
+            margin-bottom: 0;
+            font-size: 12px;
+            color: var(--cor-texto-secundario-claro);
+            word-wrap: break-word;
+        }
+        .flash-messages { list-style: none; padding: 0; margin-bottom: 20px; }
+        .flash { padding: 15px; border-radius: 6px; color: white; font-weight: 500; text-align: center; }
+        .flash.success { background-color: #28a745; }
+        .flash.error { background-color: #dc3545; }
+        hr { border: none; border-top: 1px solid var(--cor-borda-escura); margin: 40px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-shield-alt"></i> Arsenal de Escudos</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}<ul class="flash-messages">{% for c, m in messages %}<li class="flash {{ c }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+        {% endwith %}
+
+        <h2>Buscar e Salvar Novo Escudo</h2>
+        <form method="post" class="form-search" style="align-items: flex-end;">
+            <div style="flex-grow: 3;">
+                <label for="nome_time" style="font-size: 14px; color: var(--cor-texto-secundario-claro);">Nome do Time</label>
+                <input type="text" id="nome_time" name="nome_time" required placeholder="Ex: Remo ou Mali">
+            </div>
+            <div style="flex-grow: 2;">
+                <label for="pais" style="font-size: 14px; color: var(--cor-texto-secundario-claro);">País (em inglês)</label>
+                <input type="text" id="pais" name="pais" required placeholder="Ex: Brazil ou Mali">
+            </div>
+            <button type="submit" style="flex-grow: 1;">Buscar na API</button>
+        </form>
+
+        <hr>
+
+        <h2>Escudos Salvos</h2>
+        {% if escudos %}
+            <div class="escudo-grid">
+                {% for nome, url in escudos.items() | sort %}
+                <div class="escudo-item">
+                    <img src="{{ url }}" alt="{{ nome }}">
+                    <p>{{ nome }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="text-align: center; color: var(--cor-texto-secundario-claro);">Nenhum escudo salvo ainda. Use a busca acima para começar seu arsenal!</p>
+        {% endif %}
+
+        <a href="{{ url_for('index') }}" class="back-link">← Voltar para o Ranking</a>
+    </div>
+</body>
+</html>
