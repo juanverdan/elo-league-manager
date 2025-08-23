@@ -30,8 +30,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static/uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# ... (Todas as outras funções continuam exatamente iguais) ...
-
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
@@ -277,13 +275,10 @@ def gerenciar_escudos():
             'x-apisports-key': API_FOOTBALL_KEY
         }
         
-        # <--- A CORREÇÃO FINAL ESTÁ AQUI ---
-        # Trocamos 'search' por 'name' para poder usar junto com 'country'
         params = {
             "name": nome_time_busca,
             "country": pais 
         }
-        # <--- FIM DA CORREÇÃO ---
 
         try:
             response = requests.get(url, headers=headers, params=params)
@@ -318,7 +313,6 @@ def gerenciar_escudos():
 
     return render_template('gerenciar_escudos.html', escudos=escudos)
 
-# ... (O resto do seu código a partir daqui continua igual) ...
 @app.route('/admin/finalizar', methods=['GET', 'POST'])
 @login_required
 def finalizar_torneio():
