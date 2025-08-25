@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Ranking da Liga OSM{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --cor-fundo-escuro: #1a1a1d;
+            --cor-container-escuro: #2c2f33;
+            --cor-texto-principal-claro: #e0e0e0;
+            --cor-roxo-principal: #7c3aed;
+            --cor-roxo-hover: #6d28d9;
+            --cor-borda-escura: #4a4a4a;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--cor-fundo-escuro);
+            color: var(--cor-texto-principal-claro);
+            margin: 0;
+            padding: 0;
+        }
+        .main-nav {
+            background-color: var(--cor-container-escuro);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--cor-borda-escura);
+        }
+        .main-nav .logo a {
+            color: var(--cor-texto-principal-claro);
+            text-decoration: none;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .main-nav .nav-links a {
+            color: var(--cor-texto-principal-claro);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+            padding: 10px;
+        }
+        .main-nav .nav-links a:hover {
+            color: var(--cor-roxo-principal);
+        }
+        .btn-roxo {
+            background-color: var(--cor-roxo-principal); color: white; padding: 10px 18px;
+            border-radius: 6px; font-weight: bold; text-decoration: none;
+            transition: background-color 0.2s; border: none; cursor: pointer;
+            font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; font-size: 16px;
+        }
+        .btn-roxo:hover { background-color: var(--cor-roxo-hover); }
+        
+        .btn-dropdown {
+            background-color: transparent;
+            color: var(--cor-texto-principal-claro);
+            padding: 10px;
+            font-weight: 500;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+        .btn-dropdown:hover {
+            color: var(--cor-roxo-principal);
+        }
+        .btn-dropdown .fa-chevron-down {
+            font-size: 0.8em;
+        }
+
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none; position: absolute; background-color: #3e4147; min-width: 220px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 6px;
+            overflow: hidden; right: 0; border: 1px solid var(--cor-borda-escura); margin-top: 5px;
+        }
+        .dropdown-content a {
+            color: var(--cor-texto-principal-claro); padding: 12px 16px; text-decoration: none;
+            display: flex; align-items: center; gap: 10px; font-size: 14px; width: 100%; box-sizing: border-box;
+        }
+        .dropdown-content a i { width: 15px; text-align: center; }
+        .dropdown-content a:hover { background-color: var(--cor-roxo-principal); }
+        .dropdown:hover .dropdown-content { display: block; }
+
+        .main-content {
+            padding: 20px;
+        }
+        
+        .flash-messages { list-style: none; padding: 0; margin: 20px 40px 0 40px; }
+        .flash { padding: 15px; border-radius: 6px; color: white; font-weight: 500; text-align: center; }
+        .flash.success { background-color: #28a745; }
+        .flash.error { background-color: #dc3545; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header class="main-nav">
+        <div class="logo">
+            <a href="{{ url_for('index') }}">🏆 Liga OSM</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Ranking</a>
+            <a href="{{ url_for('listar_torneios') }}">Torneios</a>
+            
+            {% if session['logged_in'] %}
+                <div class="dropdown">
+                    <button class="btn-dropdown">
+                        Gerenciar <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('registrar_partida_route') }}"><i class="fas fa-plus"></i> Registrar Partida</a>
+                        <a href="{{ url_for('gerenciar_jogadores') }}"><i class="fas fa-users-cog"></i> Gerenciar Jogadores</a>
+                        <a href="{{ url_for('gerenciar_torneios') }}"><i class="fas fa-sitemap"></i> Gerenciar Torneios</a>
+                        <a href="{{ url_for('gerenciar_escudos') }}"><i class="fas fa-shield-alt"></i> Arsenal de Escudos</a>
+                        <a href="{{ url_for('finalizar_torneio') }}"><i class="fas fa-trophy"></i> Finalizar Torneio</a>
+                    </div>
+                </div>
+                <a href="{{ url_for('jornal_liga') }}">Jornal</a>
+                <a href="{{ url_for('draft_lottery') }}">Draft</a>
+                <a href="{{ url_for('logout') }}" class="btn-roxo" title="Sair"><i class="fas fa-sign-out-alt"></i></a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn-roxo">
+                    <i class="fas fa-lock"></i> Admin Login
+                </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li class="flash {{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

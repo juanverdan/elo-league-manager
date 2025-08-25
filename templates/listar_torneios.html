@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Torneios da Liga{% endblock %}
+
+{% block head %}
+<style>
+    .container { 
+        max-width: 900px; 
+        margin: 20px auto; 
+        background: #2c2f33; 
+        padding: 30px; 
+        border-radius: 12px; 
+    }
+    .torneio-lista {
+        list-style: none;
+        padding: 0;
+    }
+    .torneio-item a {
+        display: block;
+        padding: 20px;
+        background-color: #3d3d4d;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--cor-texto-principal-claro);
+        font-weight: 500;
+        font-size: 1.2em;
+        transition: background-color 0.2s;
+    }
+    .torneio-item a:hover {
+        background-color: var(--cor-roxo-principal);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>🏆 Torneios da Liga</h1>
+    <ul class="torneio-lista">
+        {% for torneio in torneios %}
+            <li class="torneio-item">
+                <a href="{{ url_for('detalhes_torneio', nome_do_torneio=torneio.nome) }}">
+                    {{ torneio.nome }} ({{ torneio.tipo }})
+                </a>
+            </li>
+        {% else %}
+            <li>Nenhum torneio encontrado.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

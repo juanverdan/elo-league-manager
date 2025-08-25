@@ -17,26 +17,32 @@
         h1 { text-align: center; border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; margin-top: 0; }
         form { display: flex; flex-direction: column; gap: 20px; }
         .form-group { display: flex; flex-direction: column; }
-        .full-width { grid-column: 1 / -1; }
         label { margin-bottom: 5px; color: var(--cor-texto-secundario-claro); font-weight: 500; }
         select, input, button { padding: 12px; border-radius: 6px; border: 1px solid var(--cor-borda-escura); font-size: 16px; width: 100%; box-sizing: border-box; background-color: #3d3d4d; color: var(--cor-texto-principal-claro); font-family: 'Inter', sans-serif; }
         button { background-color: var(--cor-header-tabela); color: white; font-weight: bold; cursor: pointer; border: none; transition: background-color 0.2s; }
         button:hover { background-color: #1e40af; }
         .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
         .hidden { display: none; }
-        .stage-group { margin-bottom: 15px; }
-        .stage-group > label { font-size: 14px; text-transform: uppercase; color: var(--cor-texto-secundario-claro); font-weight: bold; margin-bottom: 10px; }
+        .stage-group { margin-bottom: 20px; }
+        .stage-group > label { font-size: 14px; text-transform: uppercase; color: var(--cor-texto-secundario-claro); font-weight: bold; margin-bottom: 10px; display: block;}
         .player-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .placement-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .player-select-grid-4-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         #classification-list { display: flex; flex-direction: column; gap: 10px; }
-        .classification-row { display: flex; align-items: center; gap: 15px; }
-        .classification-row span { flex-basis: 50%; font-weight: 500; }
-        .classification-row input { flex-basis: 50%; }
+        .classification-row { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; gap: 15px; }
+        .classification-row span { font-weight: 500; }
+        .player-input-group { display: flex; flex-direction: column; gap: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🏅 Finalizar Torneio</h1>
+        
+        <datalist id="times-sugeridos">
+            {% for time in nomes_dos_times %}
+                <option value="{{ time }}">
+            {% endfor %}
+        </datalist>
+
         <form action="{{ url_for('finalizar_torneio') }}" method="post">
             <div class="form-group">
                 <label for="torneio_nome">Selecione o Torneio</label>
@@ -49,11 +55,9 @@
             </div>
             
             <div id="form-container" class="hidden">
-                
                 <div id="pontos-corridos-fields" class="hidden">
                     <h3>Classificação Final (Pontos Corridos)</h3>
-                    <div id="pc-player-list" class="form-group">
-                        </div>
+                    <div id="pc-player-list" class="form-group"></div>
                 </div>
 
                 <div id="mata-mata-fields" class="hidden">
@@ -61,27 +65,75 @@
                     <div class="stage-group">
                         <label>Final</label>
                         <div class="player-select-grid">
-                            <select name="mm_campeao"><option value="">Campeão</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
-                            <select name="mm_vice"><option value="">Vice-Campeão</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                            <div class="player-input-group">
+                                <select name="mm_campeao"><option value="">Campeão</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                                <input type="text" name="mm_time_campeao" placeholder="Time do Campeão" list="times-sugeridos">
+                            </div>
+                            <div class="player-input-group">
+                                <select name="mm_vice"><option value="">Vice-Campeão</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                                <input type="text" name="mm_time_vice" placeholder="Time do Vice" list="times-sugeridos">
+                            </div>
                         </div>
                     </div>
                     <div class="stage-group">
                         <label>Semifinais (Eliminados)</label>
                         <div class="player-select-grid">
-                            <select name="mm_semi"><option value="">Semifinalista 1</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
-                            <select name="mm_semi"><option value="">Semifinalista 2</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                             <div class="player-input-group">
+                                <select name="mm_semi"><option value="">Semifinalista 1</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                                <input type="text" name="mm_time_semi" placeholder="Time do Semifinalista 1" list="times-sugeridos">
+                            </div>
+                             <div class="player-input-group">
+                                <select name="mm_semi"><option value="">Semifinalista 2</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                                <input type="text" name="mm_time_semi" placeholder="Time do Semifinalista 2" list="times-sugeridos">
+                            </div>
                         </div>
                     </div>
                     <div class="stage-group">
                         <label>Quartas de Final (Eliminados)</label>
-                        <div class="player-select-grid" style="grid-template-columns: 1fr 1fr;">
-                            <select name="mm_quartas"><option value="">Quartas 1</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
-                            <select name="mm_quartas"><option value="">Quartas 2</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
-                            <select name="mm_quartas"><option value="">Quartas 3</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
-                            <select name="mm_quartas"><option value="">Quartas 4</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                        <div class="player-select-grid-4-cols">
+                             <div class="player-input-group">
+                                <select name="mm_quartas"><option value="">Quartas 1</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                                <input type="text" name="mm_time_quartas" placeholder="Time" list="times-sugeridos">
+                            </div>
+                             <div class="player-input-group">
+                                <select name="mm_quartas"><option value="">Quartas 2</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                                <input type="text" name="mm_time_quartas" placeholder="Time" list="times-sugeridos">
+                            </div>
+                             <div class="player-input-group">
+                                <select name="mm_quartas"><option value="">Quartas 3</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                                <input type="text" name="mm_time_quartas" placeholder="Time" list="times-sugeridos">
+                            </div>
+                             <div class="player-input-group">
+                                <select name="mm_quartas"><option value="">Quartas 4</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                                <input type="text" name="mm_time_quartas" placeholder="Time" list="times-sugeridos">
+                            </div>
                         </div>
                     </div>
+                    
+                    <div class="stage-group">
+                        <label>Oitavas de Final (Eliminados)</label>
+                        <div class="player-select-grid-4-cols">
+                            {% for i in range(8) %}
+                            <div class="player-input-group">
+                                <select name="mm_oitavas"><option value="">Oitavas {{ i + 1 }}</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                                <input type="text" name="mm_time_oitavas" placeholder="Time" list="times-sugeridos">
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
+
+                    <div class="stage-group">
+                        <label>Pré-Oitavas de Final (Eliminados)</label>
+                        <div class="player-select-grid-4-cols">
+                            {% for i in range(4) %}
+                            <div class="player-input-group">
+                                <select name="mm_pre_oitavas"><option value="">Pré-Oitavas {{ i + 1 }}</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                                <input type="text" name="mm_time_pre_oitavas" placeholder="Time" list="times-sugeridos">
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="form-group" style="margin-top: 20px;">
                     <label for="data_fim">Data de Término</label>
@@ -116,30 +168,32 @@
             if (tipo === 'Pontos Corridos') {
                 pcFields.classList.remove('hidden');
                 mmFields.classList.add('hidden');
-
-                // Popula a lista de jogadores para Pontos Corridos
-                pcPlayerList.innerHTML = ''; // Limpa
+                pcPlayerList.innerHTML = '';
                 const torneio = torneiosData.find(t => t.nome === nomeTorneio);
                 if (torneio && torneio.participantes) {
                     torneio.participantes.forEach(jogador => {
                         const row = document.createElement('div');
                         row.className = 'classification-row';
-                        
                         const label = document.createElement('span');
                         label.innerText = jogador;
-
-                        const input = document.createElement('input');
-                        input.type = 'number';
-                        input.name = `pc_colocacao_${jogador}`; // Nome único para cada jogador
-                        input.placeholder = 'Posição Final';
-                        input.min = 1;
+                        const inputPosicao = document.createElement('input');
+                        inputPosicao.type = 'number';
+                        inputPosicao.name = `pc_colocacao_${jogador}`;
+                        inputPosicao.placeholder = 'Posição Final';
+                        inputPosicao.min = 1;
+                        const inputTime = document.createElement('input');
+                        inputTime.type = 'text';
+                        inputTime.name = `pc_time_${jogador}`;
+                        inputTime.placeholder = 'Nome do Time';
+                        inputTime.required = true;
+                        inputTime.setAttribute('list', 'times-sugeridos');
                         
                         row.appendChild(label);
-                        row.appendChild(input);
+                        row.appendChild(inputPosicao);
+                        row.appendChild(inputTime);
                         pcPlayerList.appendChild(row);
                     });
                 }
-
             } else { // Mata-Mata
                 pcFields.classList.add('hidden');
                 mmFields.classList.remove('hidden');

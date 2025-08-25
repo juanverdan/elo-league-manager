@@ -30,8 +30,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static/uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# ... (Todas as outras funções continuam exatamente iguais) ...
-
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
@@ -155,6 +153,7 @@ def player_profile(nome_do_jogador):
                 labels_grafico.append("Hoje")
                 dados_grafico.append(jogador_data['pontos'])
             break
+            
     h2h_stats = defaultdict(lambda: {'V': 0, 'E': 0, 'D': 0})
     all_matches_details = []
     caminho_partidas = os.path.join(BASE_DIR, 'partidas.csv')
@@ -162,24 +161,50 @@ def player_profile(nome_do_jogador):
         with open(caminho_partidas, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for partida in reader:
-                partida_detalhes = { 'torneio': partida.get('torneio'), 'placar_a': partida.get('placar_a', ''), 'placar_b': partida.get('placar_b', ''), 'fase': partida.get('fase', '') }
+                oponente = None
+                match_details = {}
+                
                 if partida['jogador_a'] == nome_do_jogador:
                     oponente = partida['jogador_b']
-                    resultado_jogador = float(partida['resultado_a'])
-                    partida_detalhes['oponente'] = oponente; partida_detalhes['resultado'] = resultado_jogador
-                    all_matches_details.append(partida_detalhes)
-                    if resultado_jogador == 1: h2h_stats[oponente]['V'] += 1
-                    elif resultado_jogador == 0.5: h2h_stats[oponente]['E'] += 1
-                    else: h2h_stats[oponente]['D'] += 1
+                    resultado_para_perfil = float(partida['resultado_a'])
+                    
+                    match_details = {
+                        'jogador_time': partida.get('time_a'),
+                        'oponente_time': partida.get('time_b'),
+                        'jogador_placar': partida.get('placar_a'),
+                        'oponente_placar': partida.get('placar_b'),
+                        'jogador_penaltis': partida.get('penaltis_a'),
+                        'oponente_penaltis': partida.get('penaltis_b'),
+                    }
+
                 elif partida['jogador_b'] == nome_do_jogador:
                     oponente = partida['jogador_a']
-                    resultado_jogador = 1 - float(partida['resultado_a']) if partida['resultado_a'] != '0.5' else 0.5
-                    partida_detalhes['oponente'] = oponente; partida_detalhes['resultado'] = resultado_jogador
-                    all_matches_details.append(partida_detalhes)
-                    if resultado_jogador == 1: h2h_stats[oponente]['V'] += 1
-                    elif resultado_jogador == 0.5: h2h_stats[oponente]['E'] += 1
+                    resultado_para_perfil = 1.0 - float(partida['resultado_a'])
+                    
+                    match_details = {
+                        'jogador_time': partida.get('time_b'),
+                        'oponente_time': partida.get('time_a'),
+                        'jogador_placar': partida.get('placar_b'),
+                        'oponente_placar': partida.get('placar_a'),
+                        'jogador_penaltis': partida.get('penaltis_b'),
+                        'oponente_penaltis': partida.get('penaltis_a'),
+                    }
+
+                if oponente:
+                    if resultado_para_perfil == 1: h2h_stats[oponente]['V'] += 1
+                    elif resultado_para_perfil == 0.5: h2h_stats[oponente]['E'] += 1
                     else: h2h_stats[oponente]['D'] += 1
+
+                    match_details.update({
+                        'torneio': partida.get('torneio'),
+                        'fase': partida.get('fase', ''),
+                        'oponente': oponente,
+                        'resultado_final': resultado_para_perfil
+                    })
+                    all_matches_details.append(match_details)
+
     except FileNotFoundError: pass
+    
     nome_sem_acento = unidecode(nome_do_jogador)
     avatar_filename = nome_sem_acento.lower().replace(' ', '_') + '.png'
     return render_template(
@@ -211,21 +236,38 @@ def logout():
 @login_required
 def registrar_partida_route():
     if request.method == 'POST':
-        j_a = request.form['jogador_a']; j_b = request.form['jogador_b']; res = request.form['resultado']; torn = request.form['torneio']
-        forca_a = int(request.form['forca_time_a']); forca_b = int(request.form['forca_time_b'])
-        placar_a = int(request.form['placar_a']); placar_b = int(request.form['placar_b'])
+        j_a = request.form['jogador_a']
+        j_b = request.form['jogador_b']
+        res = request.form['resultado']
+        torn = request.form['torneio']
+        time_a = request.form['time_a']
+        time_b = request.form['time_b']
+        forca_a = int(request.form['forca_time_a'])
+        forca_b = int(request.form['forca_time_b'])
+        placar_a = int(request.form['placar_a'])
+        placar_b = int(request.form['placar_b'])
         fase = request.form['fase']
+        penaltis_a = request.form.get('penaltis_a', '')
+        penaltis_b = request.form.get('penaltis_b', '')
+        
         if j_a != j_b:
             res_map = {'vitoria_a': 1, 'empate': 0.5, 'derrota_a': 0}
-            registrar_partida(j_a, j_b, res_map[res], torn, forca_a, forca_b, placar_a, placar_b, fase)
+            registrar_partida(j_a, j_b, res_map[res], torn, time_a, time_b, forca_a, forca_b, placar_a, placar_b, fase, penaltis_a, penaltis_b)
             flash(f"Partida registrada com sucesso!", 'success')
         else:
             flash("Erro: Os jogadores devem ser diferentes.", 'error')
         return redirect(url_for('index'))
+    
     _, jogadores = carregar_dados_completos()
     regras_torneios_lista = carregar_regras_torneios()
     nomes_torneios = [torneio['nome'] for torneio in regras_torneios_lista]
-    return render_template('registrar.html', jogadores=jogadores, torneios=nomes_torneios)
+    escudos = carregar_escudos()
+    nomes_dos_times = sorted(list(escudos.keys()))
+    
+    return render_template('registrar.html', 
+                           jogadores=jogadores, 
+                           torneios=nomes_torneios, 
+                           nomes_dos_times=nomes_dos_times)
 
 @app.route('/admin/torneios', methods=['GET', 'POST'])
 @login_required
@@ -240,7 +282,8 @@ def gerenciar_torneios():
                 "k_factor": int(request.form['k_factor']), "bonus_campeao": int(request.form['bonus_campeao']),
                 "bonus_vice": int(request.form['bonus_vice']), "bonus_semi": int(request.form['bonus_semi']),
                 "bonus_quarto": int(request.form.get('bonus_quarto', 0)) if tipo_torneio == 'Pontos Corridos' else 0,
-                "trophy_img": "", "participantes": []
+                "trophy_img": request.form.get('trophy_img', 'default_trophy.png'),
+                "participantes": []
             }
             regras_atuais.append(novo_torneio)
             flash(f"Torneio '{novo_torneio['nome']}' adicionado com sucesso!", 'success')
@@ -262,7 +305,6 @@ def gerenciar_torneios():
 @login_required
 def gerenciar_escudos():
     escudos = carregar_escudos()
-    
     if request.method == 'POST':
         nome_time_busca = request.form.get('nome_time')
         pais = request.form.get('pais')
@@ -276,14 +318,10 @@ def gerenciar_escudos():
             'x-rapidapi-host': "v3.football.api-sports.io",
             'x-apisports-key': API_FOOTBALL_KEY
         }
-        
-        # <--- A CORREÇÃO FINAL ESTÁ AQUI ---
-        # Trocamos 'search' por 'name' para poder usar junto com 'country'
         params = {
             "name": nome_time_busca,
             "country": pais 
         }
-        # <--- FIM DA CORREÇÃO ---
 
         try:
             response = requests.get(url, headers=headers, params=params)
@@ -293,7 +331,6 @@ def gerenciar_escudos():
             if data.get('errors') and len(data.get('errors')) > 0:
                 error_message = str(data['errors'])
                 flash(f"A API retornou um erro: {error_message}", 'error')
-
             elif data.get('results', 0) > 0 and data.get('response'):
                 time_info = data['response'][0]['team']
                 nome_oficial = time_info['name']
@@ -318,7 +355,6 @@ def gerenciar_escudos():
 
     return render_template('gerenciar_escudos.html', escudos=escudos)
 
-# ... (O resto do seu código a partir daqui continua igual) ...
 @app.route('/admin/finalizar', methods=['GET', 'POST'])
 @login_required
 def finalizar_torneio():
@@ -336,32 +372,44 @@ def finalizar_torneio():
                     time = request.form.get(f'pc_time_{participante}')
                     if colocacao and time:
                         resultados[participante] = {'colocacao': colocacao, 'time': time}
-        else:
-            posicoes = {
-                'campeao': request.form.get('mm_campeao'),
-                'vice': request.form.get('mm_vice'),
-                'semi': request.form.getlist('mm_semi'),
-                'quartas': request.form.getlist('mm_quartas')
+        else: # Mata-Mata
+            campeao_jogador = request.form.get('mm_campeao')
+            campeao_time = request.form.get('mm_time_campeao')
+            if campeao_jogador:
+                resultados[campeao_jogador] = {'colocacao': 'Campeão', 'time': campeao_time or 'N/A'}
+
+            vice_jogador = request.form.get('mm_vice')
+            vice_time = request.form.get('mm_time_vice')
+            if vice_jogador:
+                resultados[vice_jogador] = {'colocacao': 'Vice-Campeão', 'time': vice_time or 'N/A'}
+            
+            fases = {
+                'Semifinalista': ('mm_semi', 'mm_time_semi'),
+                'Quartas de Final': ('mm_quartas', 'mm_time_quartas'),
+                'Oitavas de Final': ('mm_oitavas', 'mm_time_oitavas'),
+                'Pré-Oitavas': ('mm_pre_oitavas', 'mm_time_pre_oitavas')
             }
-            times = {
-                'campeao': request.form.get('mm_time_campeao'),
-                'vice': request.form.get('mm_time_vice'),
-            }
-            if posicoes['campeao']:
-                resultados[posicoes['campeao']] = {'colocacao': 'Campeão', 'time': times['campeao']}
-            if posicoes['vice']:
-                resultados[posicoes['vice']] = {'colocacao': 'Vice-Campeão', 'time': times['vice']}
-            for jogador in posicoes['semi']:
-                if jogador:
-                    resultados[jogador] = {'colocacao': 'Semifinalista', 'time': 'N/A'}
-            for jogador in posicoes['quartas']:
-                 if jogador:
-                    resultados[jogador] = {'colocacao': 'Quartas de Final', 'time': 'N/A'}
+
+            for colocacao, (jogadores_key, times_key) in fases.items():
+                jogadores_lista = request.form.getlist(jogadores_key)
+                times_lista = request.form.getlist(times_key)
+                for i, jogador in enumerate(jogadores_lista):
+                    if jogador and jogador != 'N/A':
+                        time = times_lista[i] if i < len(times_lista) and times_lista[i] else 'N/A'
+                        resultados[jogador] = {'colocacao': colocacao, 'time': time}
+
         aplicar_bonus_campeonato(torneio_nome, data_fim, resultados)
         flash(f"Torneio '{torneio_nome}' finalizado e bônus aplicados com sucesso!", 'success')
         return redirect(url_for('index'))
+        
     _, jogadores = carregar_dados_completos()
-    return render_template('finalizar_torneio.html', jogadores=jogadores, torneios=regras_torneios_lista)
+    escudos = carregar_escudos()
+    nomes_dos_times = sorted(list(escudos.keys()))
+    
+    return render_template('finalizar_torneio.html', 
+                           jogadores=jogadores, 
+                           torneios=regras_torneios_lista, 
+                           nomes_dos_times=nomes_dos_times)
     
 @app.route('/admin/jogadores', methods=['GET', 'POST'])
 @login_required
@@ -498,6 +546,85 @@ def jornal_liga():
         response.headers['Content-Disposition'] = f'inline; filename=jornal_liga_edicao_{dados_jornal["edicao"]}.pdf'
         return response
     return render_template('jornal_editor.html', partidas_recentes=reversed(partidas_para_exibir), todos_jogadores=todos_jogadores_nomes, todos_torneios=todos_torneios)
+
+@app.route('/torneios')
+def listar_torneios():
+    """Esta página irá listar todos os torneios criados."""
+    todos_os_torneios = sorted(carregar_regras_torneios(), key=lambda t: t.get('nome', ''))
+    return render_template('listar_torneios.html', torneios=todos_os_torneios)
+
+@app.route('/torneio/<path:nome_do_torneio>')
+def detalhes_torneio(nome_do_torneio):
+    """Esta página mostrará os detalhes de um torneio específico."""
+    regras_torneios = carregar_regras_torneios()
+    torneio_atual = next((t for t in regras_torneios if t['nome'] == nome_do_torneio), None)
+
+    if not torneio_atual:
+        flash(f"Torneio '{nome_do_torneio}' não encontrado.", 'error')
+        return redirect(url_for('listar_torneios'))
+
+    caminho_partidas = os.path.join(BASE_DIR, 'partidas.csv')
+    partidas_do_torneio = []
+    try:
+        with open(caminho_partidas, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for partida in reader:
+                if partida['torneio'] == nome_do_torneio:
+                    partidas_do_torneio.append(partida)
+    except FileNotFoundError:
+        pass
+
+    dados_processados = {}
+    if torneio_atual.get('tipo') == 'Pontos Corridos':
+        tabela = {p: {'pontos': 0, 'vitorias': 0, 'empates': 0, 'derrotas': 0, 'gp': 0, 'gc': 0, 'sg': 0, 'jogos': 0} for p in torneio_atual.get('participantes', [])}
+        
+        for partida in partidas_do_torneio:
+            j_a, j_b = partida['jogador_a'], partida['jogador_b']
+            p_a, p_b = int(partida['placar_a']), int(partida['placar_b'])
+
+            if j_a in tabela and j_b in tabela:
+                tabela[j_a]['gp'] += p_a; tabela[j_a]['gc'] += p_b; tabela[j_a]['jogos'] += 1
+                tabela[j_b]['gp'] += p_b; tabela[j_b]['gc'] += p_a; tabela[j_b]['jogos'] += 1
+                
+                if p_a > p_b:
+                    tabela[j_a]['pontos'] += 3; tabela[j_a]['vitorias'] += 1
+                    tabela[j_b]['derrotas'] += 1
+                elif p_b > p_a:
+                    tabela[j_b]['pontos'] += 3; tabela[j_b]['vitorias'] += 1
+                    tabela[j_a]['derrotas'] += 1
+                else:
+                    tabela[j_a]['pontos'] += 1; tabela[j_a]['empates'] += 1
+                    tabela[j_b]['pontos'] += 1; tabela[j_b]['empates'] += 1
+        
+        lista_classificacao = [{'jogador': nome, **stats} for nome, stats in tabela.items()]
+        for jogador in lista_classificacao:
+            jogador['sg'] = jogador['gp'] - jogador['gc']
+        
+        lista_classificacao.sort(key=lambda x: (x['pontos'], x['sg'], x['gp']), reverse=True)
+        dados_processados = {'tabela': lista_classificacao}
+
+    else: # Mata-Mata
+        def get_phase_sort_key(phase_name):
+            phase_lower = phase_name.lower()
+            if 'final' in phase_lower: return 0
+            if 'semi' in phase_lower: return 1
+            if 'quarta' in phase_lower: return 2
+            if 'oitava' in phase_lower: return 3
+            if 'pré-oitava' in phase_lower: return 4
+            if 'grupo' in phase_lower: return 5
+            if 'rodada' in phase_lower: return 6
+            return 99
+
+        jogos_por_fase = defaultdict(list)
+        for partida in partidas_do_torneio:
+            fase = partida.get('fase') or 'Fase Não Definida'
+            jogos_por_fase[fase].append(partida)
+
+        jogos_por_fase_ordenado = dict(sorted(jogos_por_fase.items(), key=lambda item: get_phase_sort_key(item[0])))
+        dados_processados = {'jogos_por_fase': jogos_por_fase_ordenado}
+
+    escudos = carregar_escudos()
+    return render_template('detalhes_torneio.html', torneio=torneio_atual, dados=dados_processados, escudos=escudos)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

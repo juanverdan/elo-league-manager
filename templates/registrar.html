@@ -13,53 +13,84 @@
             --cor-texto-secundario-claro: #a0a0a0; --cor-borda-escura: #4a4a4a; --cor-header-tabela: #2563eb;
         }
         body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo-escuro); color: var(--cor-texto-principal-claro); margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 40px auto; background: var(--cor-container-escuro); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid var(--cor-borda-escura); }
+        .container { max-width: 800px; margin: 40px auto; background: var(--cor-container-escuro); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid var(--cor-borda-escura); }
         h1 { text-align: center; border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; margin-top: 0; }
         form { display: flex; flex-direction: column; gap: 15px; }
-        .form-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 15px; align-items: flex-end; }
         select, input, button { padding: 12px; border-radius: 6px; border: 1px solid var(--cor-borda-escura); font-size: 16px; width: 100%; box-sizing: border-box; background-color: #3d3d4d; color: var(--cor-texto-principal-claro); font-family: 'Inter', sans-serif;}
         button { background-color: #28a745; color: white; font-weight: bold; cursor: pointer; border: none; transition: background-color 0.2s; margin-top: 10px;}
         button:hover { background-color: #218838; }
         .form-group { display: flex; flex-direction: column; }
         label { margin-bottom: 5px; color: var(--cor-texto-secundario-claro); font-weight: 500; }
         .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
+        .form-grid-4 { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; gap: 15px; align-items: flex-end; }
+        .hidden { display: none; }
+        .penalty-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📝 Registrar Partida</h1>
+
+        <datalist id="times-sugeridos">
+            {% for time in nomes_dos_times %}
+                <option value="{{ time }}">
+            {% endfor %}
+        </datalist>
+
         <form action="{{ url_for('registrar_partida_route') }}" method="post">
-            <div class="form-grid">
+            <div class="form-grid-4">
                 <div class="form-group">
                     <label for="jogador_a">Jogador A</label>
                     <select name="jogador_a" id="jogador_a" required>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
                 </div>
                 <div class="form-group">
-                    <label for="forca_time_a">Força Time</label>
+                    <label for="time_a">Time A</label>
+                    <input type="text" name="time_a" placeholder="Time do Jogador A" list="times-sugeridos" required>
+                </div>
+                 <div class="form-group">
+                    <label for="forca_time_a">Força</label>
                     <input type="number" name="forca_time_a" value="85" required>
                 </div>
+                <div class="form-group">
+                    <label for="placar_a">Placar A</label>
+                    <input type="number" name="placar_a" value="0" min="0" required>
+                </div>
             </div>
-            <div class="form-grid">
+            <div class="form-grid-4">
                 <div class="form-group">
                     <label for="jogador_b">Jogador B</label>
                     <select name="jogador_b" id="jogador_b" required>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
                 </div>
                 <div class="form-group">
-                    <label for="forca_time_b">Força Time</label>
-                    <input type="number" name="forca_time_b" value="85" required>
+                    <label for="time_b">Time B</label>
+                    <input type="text" name="time_b" placeholder="Time do Jogador B" list="times-sugeridos" required>
                 </div>
-            </div>
-
-            <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
                 <div class="form-group">
-                    <label for="placar_a">Placar A</label>
-                    <input type="number" name="placar_a" value="0" min="0" required>
+                    <label for="forca_time_b">Força</label>
+                    <input type="number" name="forca_time_b" value="85" required>
                 </div>
                 <div class="form-group">
                     <label for="placar_b">Placar B</label>
                     <input type="number" name="placar_b" value="0" min="0" required>
                 </div>
             </div>
+            
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="penalty-checkbox" onchange="togglePenaltyInputs()"> Decidido nos Pênaltis?
+                </label>
+                <div id="penalty-inputs" class="penalty-group hidden">
+                    <div class="form-group">
+                        <label for="penaltis_a">Pênaltis A</label>
+                        <input type="number" name="penaltis_a" value="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="penaltis_b">Pênaltis B</label>
+                        <input type="number" name="penaltis_b" value="0" min="0">
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="fase">Fase / Rodada (Opcional)</label>
                 <input type="text" name="fase" id="fase" placeholder="Ex: Final, Rodada 3, etc.">
@@ -80,5 +111,17 @@
         </form>
         <a href="{{ url_for('index') }}" class="back-link">← Voltar para o Ranking</a>
     </div>
+
+    <script>
+        function togglePenaltyInputs() {
+            const checkbox = document.getElementById('penalty-checkbox');
+            const inputs = document.getElementById('penalty-inputs');
+            if (checkbox.checked) {
+                inputs.classList.remove('hidden');
+            } else {
+                inputs.classList.add('hidden');
+            }
+        }
+    </script>
 </body>
 </html>

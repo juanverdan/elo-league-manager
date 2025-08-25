@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2025-08-23T01:55:20.088446",
+    "timestamp": "2025-08-22T01:55:20.088446",
     "ratings": {
       "André": 2022,
       "Hericles": 1673,
@@ -141,6 +141,195 @@
       "Wesley": 1456,
       "Emanuel": 1453,
       "Alex Markes": 1418,
+      "Ledin": 1431,
+      "Temis": 1437,
+      "João Carlos": 1310
+    }
+  },
+  {
+    "timestamp": "2025-08-24T01:10:58.588500",
+    "ratings": {
+      "André": 1991,
+      "Hericles": 1632,
+      "Valdo": 1661,
+      "Ramon": 1567,
+      "Daniel Campos": 1584,
+      "Davi": 1509,
+      "Samuel": 1483,
+      "Indiano": 1544,
+      "Tiago": 1507,
+      "Lavieri": 1456,
+      "Wesley": 1456,
+      "Emanuel": 1453,
+      "Alex Markes": 1418,
+      "Ledin": 1431,
+      "Temis": 1437,
+      "João Carlos": 1310
+    }
+  },
+  {
+    "timestamp": "2025-08-24T01:11:34.352170",
+    "ratings": {
+      "André": 1991,
+      "Hericles": 1632,
+      "Valdo": 1661,
+      "Ramon": 1567,
+      "Daniel Campos": 1584,
+      "Davi": 1509,
+      "Samuel": 1483,
+      "Indiano": 1536,
+      "Tiago": 1507,
+      "Lavieri": 1456,
+      "Wesley": 1456,
+      "Emanuel": 1461,
+      "Alex Markes": 1418,
+      "Ledin": 1431,
+      "Temis": 1437,
+      "João Carlos": 1310
+    }
+  },
+  {
+    "timestamp": "2025-08-24T01:15:23.302140",
+    "ratings": {
+      "André": 1991,
+      "Hericles": 1618,
+      "Valdo": 1661,
+      "Ramon": 1567,
+      "Daniel Campos": 1584,
+      "Davi": 1509,
+      "Samuel": 1483,
+      "Indiano": 1536,
+      "Tiago": 1507,
+      "Lavieri": 1470,
+      "Wesley": 1456,
+      "Emanuel": 1461,
+      "Alex Markes": 1418,
+      "Ledin": 1431,
+      "Temis": 1437,
+      "João Carlos": 1310
+    }
+  },
+  {
+    "timestamp": "2025-08-24T01:15:45.365760",
+    "ratings": {
+      "André": 1991,
+      "Hericles": 1618,
+      "Valdo": 1661,
+      "Ramon": 1586,
+      "Daniel Campos": 1584,
+      "Davi": 1509,
+      "Samuel": 1483,
+      "Indiano": 1536,
+      "Tiago": 1507,
+      "Lavieri": 1470,
+      "Wesley": 1456,
+      "Emanuel": 1461,
+      "Alex Markes": 1418,
+      "Ledin": 1412,
+      "Temis": 1437,
+      "João Carlos": 1310
+    }
+  },
+  {
+    "timestamp": "2025-08-24T01:16:08.025153",
+    "ratings": {
+      "André": 1993,
+      "Hericles": 1618,
+      "Valdo": 1661,
+      "Ramon": 1586,
+      "Daniel Campos": 1584,
+      "Davi": 1509,
+      "Samuel": 1483,
+      "Indiano": 1536,
+      "Tiago": 1504,
+      "Lavieri": 1470,
+      "Wesley": 1456,
+      "Emanuel": 1461,
+      "Alex Markes": 1418,
+      "Ledin": 1412,
+      "Temis": 1437,
+      "João Carlos": 1310
+    }
+  },
+  {
+    "timestamp": "2025-08-24T01:16:37.653000",
+    "ratings": {
+      "André": 1993,
+      "Hericles": 1618,
+      "Valdo": 1661,
+      "Ramon": 1586,
+      "Daniel Campos": 1571,
+      "Davi": 1447,
+      "Samuel": 1483,
+      "Indiano": 1536,
+      "Tiago": 1504,
+      "Lavieri": 1470,
+      "Wesley": 1405,
+      "Emanuel": 1461,
+      "Alex Markes": 1431,
+      "Ledin": 1412,
+      "Temis": 1389,
+      "João Carlos": 1310
+    }
+  },
+  {
+    "timestamp": "2025-08-24T22:13:45.667026",
+    "ratings": {
+      "André": 1991,
+      "Hericles": 1632,
+      "Valdo": 1661,
+      "Ramon": 1567,
+      "Daniel Campos": 1584,
+      "Davi": 1509,
+      "Samuel": 1483,
+      "Indiano": 1544,
+      "Tiago": 1507,
+      "Lavieri": 1456,
+      "Wesley": 1456,
+      "Emanuel": 1453,
+      "Alex Markes": 1418,
+      "Ledin": 1431,
+      "Temis": 1437,
+      "João Carlos": 1310
+    }
+  },
+  {
+    "timestamp": "2025-08-24T22:24:55.034760",
+    "ratings": {
+      "André": 1991,
+      "Hericles": 1632,
+      "Valdo": 1661,
+      "Ramon": 1567,
+      "Daniel Campos": 1584,
+      "Davi": 1509,
+      "Samuel": 1483,
+      "Indiano": 1544,
+      "Tiago": 1507,
+      "Lavieri": 1456,
+      "Wesley": 1456,
+      "Emanuel": 1453,
+      "Alex Markes": 1418,
+      "Ledin": 1431,
+      "Temis": 1437,
+      "João Carlos": 1310
+    }
+  },
+  {
+    "timestamp": "2025-08-24T22:25:33.717312",
+    "ratings": {
+      "André": 1991,
+      "Hericles": 1632,
+      "Valdo": 1661,
+      "Ramon": 1567,
+      "Daniel Campos": 1584,
+      "Davi": 1509,
+      "Samuel": 1483,
+      "Indiano": 1544,
+      "Tiago": 1507,
+      "Lavieri": 1453,
+      "Wesley": 1456,
+      "Emanuel": 1453,
+      "Alex Markes": 1421,
       "Ledin": 1431,
       "Temis": 1437,
       "João Carlos": 1310

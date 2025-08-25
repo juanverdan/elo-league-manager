@@ -1,164 +1,107 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Ranking da Liga OSM</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+{% extends "base.html" %}
+
+{% block title %}Ranking da Liga{% endblock %}
+
+{% block head %}
     <style>
-        :root {
-            --cor-fundo-escuro: #1a1a1d;
-            --cor-gradiente-escuro: #3d3d4d;
-            --cor-container-escuro: #2c2f33;
-            --cor-texto-principal-claro: #e0e0e0;
-            --cor-texto-secundario-claro: #a0a0a0;
-            --cor-borda-escura: #4a4a4a;
-            --cor-header-tabela: #2563eb;
-            --cor-vitoria: #22c55e;
-            --cor-derrota: #ef4444;
-            --cor-empate: #9ca3af;
-            --cor-roxo-principal: #7c3aed;
-            --cor-roxo-hover: #6d28d9;
+        /* Estilos que são ESPECÍFICOS para a página de ranking */
+        .container { 
+            max-width: 900px; 
+            margin: 20px auto; 
+            background: #2c2f33; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25); 
+            border: 1px solid #4a4a4a; 
         }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--cor-fundo-escuro); background-image: linear-gradient(160deg, var(--cor-fundo-escuro) 0%, var(--cor-gradiente-escuro) 100%); color: var(--cor-texto-principal-claro); margin: 0; padding: 20px; min-height: 100vh; }
-        .container { max-width: 900px; margin: 20px auto; background: var(--cor-container-escuro); color: var(--cor-texto-principal-claro); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid var(--cor-borda-escura); }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; margin-bottom: 20px; }
-        h1 { margin: 0; color: var(--cor-texto-principal-claro); }
-        .header-botoes { display: flex; gap: 10px; align-items: center; }
-        .btn-roxo {
-            background-color: var(--cor-roxo-principal); color: white; padding: 10px 18px;
-            border-radius: 6px; font-weight: bold; font-size: 16px; text-decoration: none;
-            transition: background-color 0.2s; border: none; cursor: pointer;
-            font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px;
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding-bottom: 15px; 
+            margin-bottom: 20px; 
         }
-        .btn-roxo:hover { background-color: var(--cor-roxo-hover); }
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-content {
-            display: none; position: absolute; background-color: #3e4147; min-width: 220px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 6px;
-            overflow: hidden; right: 0; border: 1px solid var(--cor-borda-escura);
-        }
-        .dropdown-content a {
-            color: var(--cor-texto-principal-claro); padding: 12px 16px; text-decoration: none;
-            display: flex; align-items: center; gap: 10px; font-size: 14px;
-        }
-        .dropdown-content a i { width: 15px; text-align: center; }
-        .dropdown-content a:hover { background-color: var(--cor-roxo-principal); }
-        .dropdown:hover .dropdown-content { display: block; }
+        h1 { margin: 0; color: #e0e0e0; }
+        /* Adicione aqui SÓ os estilos que faltam para a tabela do ranking, etc. */
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px 10px; text-align: left; vertical-align: middle; }
-        th { background-color: var(--cor-header-tabela); color: var(--cor-texto-principal-claro); font-size: 14px; text-transform: uppercase; }
-        td { font-size: 16px; border-bottom: 1px solid var(--cor-borda-escura); }
+        th { background-color: #2563eb; color: #e0e0e0; font-size: 14px; text-transform: uppercase; }
+        td { font-size: 16px; border-bottom: 1px solid #4a4a4a; }
         tr:last-child td { border-bottom: none; }
         tr:hover { background-color: rgba(255, 255, 255, 0.05); }
         .rank { font-weight: bold; width: 80px; text-align: center; }
         .rank-change { font-size: 14px; display: inline-block; width: 40px; font-weight: bold;}
-        .rank-up { color: var(--cor-vitoria); }
-        .rank-down { color: var(--cor-derrota); }
-        .rank-same { color: var(--cor-texto-secundario-claro); }
-        .team-name { font-weight: 500; }
+        .rank-up { color: #22c55e; }
+        .rank-down { color: #ef4444; }
+        .rank-same { color: #a0a0a0; }
+        .player-link { text-decoration: none; color: inherit; transition: color 0.2s; display: flex; align-items: center; gap: 12px; }
+        .player-link:hover { color: #2563eb; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #4a4a4a; }
         .points { font-weight: bold; text-align: center; }
         .change { font-weight: 500; text-align: center; }
-        .change.positive { color: var(--cor-vitoria); }
-        .change.negative { color: var(--cor-derrota); }
-        .form-indicator { display: inline-block; width: 24px; height: 24px; border-radius: 50%; line-height: 24px; text-align: center; color: var(--cor-texto-principal-claro); font-weight: bold; margin-right: 4px; font-size: 12px; }
-        .win { background-color: var(--cor-vitoria); }
-        .draw { background-color: var(--cor-empate); }
-        .loss { background-color: var(--cor-derrota); }
-        .player-link { text-decoration: none; color: inherit; transition: color 0.2s; display: flex; align-items: center; gap: 12px; }
-        .player-link:hover { color: var(--cor-header-tabela); }
-        .provisional-marker { color: var(--cor-texto-secundario-claro); font-size: 14px; font-weight: normal; margin-left: -8px; cursor: help; }
-        .flash-messages { list-style: none; padding: 0; margin-bottom: 20px; }
-        .flash { padding: 15px; border-radius: 6px; color: white; font-weight: 500; text-align: center; }
-        .flash.success { background-color: #28a745; }
-        .flash.error { background-color: #dc3545; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--cor-borda-escura); }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🏆 Ranking da Liga</h1>
-            <div class="header-botoes">
-                {% if session['logged_in'] %}
-                    <a href="{{ url_for('jornal_liga') }}" class="btn-roxo" title="Jornal da Liga"><i class="fas fa-newspaper"></i> Jornal</a>
-                    <a href="{{ url_for('draft_lottery') }}" class="btn-roxo" title="Loteria do Draft"><i class="fas fa-basketball-ball"></i> Draft</a>
-                    <div class="dropdown">
-                        <button class="btn-roxo"><i class="fas fa-cogs"></i> Gerenciar</button>
-                        <div class="dropdown-content">
-                            <a href="{{ url_for('registrar_partida_route') }}"><i class="fas fa-plus"></i> Registrar Partida</a>
-                            <a href="{{ url_for('gerenciar_jogadores') }}"><i class="fas fa-users-cog"></i> Gerenciar Jogadores</a>
-                            <a href="{{ url_for('gerenciar_torneios') }}"><i class="fas fa-sitemap"></i> Gerenciar Torneios</a>
-                            <a href="{{ url_for('gerenciar_escudos') }}"><i class="fas fa-shield-alt"></i> Arsenal de Escudos</a>
-                            <a href="{{ url_for('finalizar_torneio') }}"><i class="fas fa-trophy"></i> Finalizar Torneio</a>
-                        </div>
-                    </div>
-                    <a href="{{ url_for('logout') }}" class="btn-roxo" title="Sair"><i class="fas fa-sign-out-alt"></i></a>
-                {% else %}
-                    <a href="{{ url_for('login') }}" class="btn-roxo"><i class="fas fa-lock"></i> Admin Login</a>
-                {% endif %}
-            </div>
-        </div>
+        .change.positive { color: #22c55e; }
+        .change.negative { color: #ef4444; }
+        .form-indicator { display: inline-block; width: 24px; height: 24px; border-radius: 50%; line-height: 24px; text-align: center; color: #e0e0e0; font-weight: bold; margin-right: 4px; font-size: 12px; }
+        .win { background-color: #22c55e; }
+        .draw { background-color: #9ca3af; }
+        .loss { background-color: #ef4444; }
+        .provisional-marker { color: #a0a0a0; font-size: 14px; font-weight: normal; margin-left: -8px; cursor: help; }
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <ul class="flash-messages">
-                {% for category, message in messages %}
-                    <li class="flash {{ category }}">{{ message }}</li>
-                {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
-        
-        <table>
-            <thead>
-                <tr>
-                    <th class="rank">#</th>
-                    <th style="width: 40%;">Jogador</th>
-                    <th class="points">+/- 24h</th>
-                    <th class="points">Pontos</th>
-                    <th>Forma Recente</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for jogador in ranking %}
-                <tr>
-                    <td class="rank">
-                        {{ jogador.posicao_atual }}º
-                        <span class="rank-change">
-                            {% if jogador.mudanca_posicao.status == 'up' %}<span class="rank-up">↑ {{ jogador.mudanca_posicao.diff }}</span>
-                            {% elif jogador.mudanca_posicao.status == 'down' %}<span class="rank-down">↓ {{ jogador.mudanca_posicao.diff }}</span>
-                            {% else %}<span class="rank-same">-</span>{% endif %}
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>🏆 Ranking da Liga</h1>
+        </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th class="rank">#</th>
+                <th style="width: 40%;">Jogador</th>
+                <th class="points">+/- 24h</th>
+                <th class="points">Pontos</th>
+                <th>Forma Recente</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for jogador in ranking %}
+            <tr>
+                <td class="rank">
+                    {{ jogador.posicao_atual }}º
+                    <span class="rank-change">
+                        {% if jogador.mudanca_posicao.status == 'up' %}<span class="rank-up">↑ {{ jogador.mudanca_posicao.diff }}</span>
+                        {% elif jogador.mudanca_posicao.status == 'down' %}<span class="rank-down">↓ {{ jogador.mudanca_posicao.diff }}</span>
+                        {% else %}<span class="rank-same">-</span>{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('player_profile', nome_do_jogador=jogador.nome) }}" class="player-link">
+                        <img src="{{ url_for('static', filename='images/avatars/' + jogador.avatar_filename) }}" 
+                             onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';" 
+                             class="avatar">
+                        <span class="team-name">
+                            {{ jogador.nome }}
+                            {% if jogador.provisional %}<span class="provisional-marker" title="Jogador com rating provisório">*</span>{% endif %}
                         </span>
-                    </td>
-                    <td>
-                        <a href="{{ url_for('player_profile', nome_do_jogador=jogador.nome) }}" class="player-link">
-                            <img src="{{ url_for('static', filename='images/avatars/' + jogador.avatar_filename) }}" 
-                                 onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';" 
-                                 class="avatar">
-                            <span class="team-name">
-                                {{ jogador.nome }}
-                                {% if jogador.provisional %}<span class="provisional-marker" title="Jogador com rating provisório">*</span>{% endif %}
-                            </span>
-                        </a>
-                    </td>
-                    <td class="change {% if jogador.mudanca_pontos > 0 %}positive{% elif jogador.mudanca_pontos < 0 %}negative{% endif %}">
-                        {{ '%+d'|format(jogador.mudanca_pontos) }}
-                    </td>
-                    <td class="points">{{ jogador.pontos }}</td>
-                    <td>
-                        {% for resultado in jogador.forma|reverse %}
-                            {% if resultado == 'W' %}<span class="form-indicator win">V</span>
-                            {% elif resultado == 'D' %}<span class="form-indicator draw">E</span>
-                            {% else %}<span class="form-indicator loss">D</span>{% endif %}
-                        {% endfor %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</body>
-</html>
+                    </a>
+                </td>
+                <td class="change {% if jogador.mudanca_pontos > 0 %}positive{% elif jogador.mudanca_pontos < 0 %}negative{% endif %}">
+                    {{ '%+d'|format(jogador.mudanca_pontos) }}
+                </td>
+                <td class="points">{{ jogador.pontos }}</td>
+                <td>
+                    {% for resultado in jogador.forma|reverse %}
+                        {% if resultado == 'W' %}<span class="form-indicator win">V</span>
+                        {% elif resultado == 'D' %}<span class="form-indicator draw">E</span>
+                        {% else %}<span class="form-indicator loss">D</span>{% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

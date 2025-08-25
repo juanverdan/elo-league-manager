@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}{{ torneio.nome }}{% endblock %}
+
+{% block head %}
+<style>
+    .container { max-width: 900px; margin: 20px auto; background: #2c2f33; padding: 30px; border-radius: 12px; }
+    h1, h2 { text-align: center; }
+    /* Estilos da Tabela de Classificação */
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 12px; text-align: center; border-bottom: 1px solid #4a4a4a; }
+    th { background-color: #2563eb; font-size: 14px; text-transform: uppercase; }
+    td.jogador { text-align: left; }
+    /* Estilos do Mata-Mata (reutilizando do player.html) */
+    .fase-container { margin-bottom: 30px; }
+    .match-detail-item { display: grid; grid-template-columns: 1fr 1fr; align-items: center; background-color: #1e1e1e; padding: 10px 15px; border-radius: 6px; margin-bottom: 8px; gap: 15px; }
+    .match-score-display { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .match-shield { width: 32px; height: 32px; object-fit: contain; }
+    .match-score-text { font-weight: bold; font-size: 1.4em; }
+    .match-players { text-align: right; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ torneio.nome }}</h1>
+    <h2 style="font-size: 1.2em; color: #a0a0a0;">({{ torneio.tipo }})</h2>
+
+    {% if torneio.tipo == 'Pontos Corridos' %}
+        <h3>Tabela de Classificação</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Pos</th>
+                    <th style="text-align: left;">Jogador</th>
+                    <th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in dados.tabela %}
+                <tr>
+                    <td>{{ loop.index }}º</td>
+                    <td class="jogador">{{ item.jogador }}</td>
+                    <td><b>{{ item.pontos }}</b></td>
+                    <td>{{ item.jogos }}</td>
+                    <td>{{ item.vitorias }}</td>
+                    <td>{{ item.empates }}</td>
+                    <td>{{ item.derrotas }}</td>
+                    <td>{{ item.gp }}</td>
+                    <td>{{ item.gc }}</td>
+                    <td>{{ item.sg }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %} {# Mata-Mata #}
+        <h3>Resultados por Fase</h3>
+        {% for fase, partidas in dados.jogos_por_fase.items() %}
+            <div class="fase-container">
+                <h4>{{ fase }}</h4>
+                {% for partida in partidas %}
+                    <div class="match-detail-item">
+                        <div class="match-score-display">
+                            <img src="{{ escudos.get(partida.time_a) or url_for('static', filename='images/avatars/default.png') }}" class="match-shield" title="{{ partida.time_a }}">
+                            <span class="match-score-text">{{ partida.placar_a }} &times; {{ partida.placar_b }}</span>
+                            <img src="{{ escudos.get(partida.time_b) or url_for('static', filename='images/avatars/default.png') }}" class="match-shield" title="{{ partida.time_b }}">
+                        </div>
+                        <div class="match-players">
+                            {{ partida.jogador_a }} vs {{ partida.jogador_b }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

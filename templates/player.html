@@ -63,11 +63,6 @@
         .h2h-draw { color: var(--cor-empate); }
         .h2h-loss { color: var(--cor-derrota); font-weight: bold; }
         #match-details-results { margin-top: 20px; max-height: 280px; overflow-y: auto; padding-right: 5px; }
-        .match-detail-item { display: flex; justify-content: space-between; align-items: center; background-color: var(--cor-container-escuro); padding: 10px 15px; border-radius: 6px; margin-bottom: 8px; }
-        .match-detail-torneio { font-size: 14px; color: var(--cor-texto-secundario-claro); }
-        .match-detail-resultado { font-weight: bold; font-size: 16px; }
-
-        /* <--- MUDANÇA AQUI: Novo estilo para o escudo no histórico */
         .event-details {
             display: flex;
             align-items: center;
@@ -77,6 +72,43 @@
             width: 28px;
             height: 28px;
             object-fit: contain;
+        }
+        .match-detail-item {
+            display: grid;
+            grid-template-columns: 20px 1fr 1fr;
+            align-items: center;
+            background-color: var(--cor-container-escuro);
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            gap: 15px;
+        }
+        .match-result-indicator {
+            font-weight: bold;
+            font-size: 1.2em;
+            justify-self: center;
+        }
+        .match-score-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .match-shield {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+        .match-score-text {
+            font-weight: bold;
+            font-size: 1.4em;
+            color: var(--cor-texto-principal-claro);
+        }
+        .match-info {
+            font-size: 0.9em;
+            color: var(--cor-texto-secundario-claro);
+            text-align: right;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -112,7 +144,7 @@
                         <li class="event-item">
                             <div class="event-details">
                                 {% if resultado.time and resultado.time in escudos %}
-                                    <img src="{{ escudos[resultado.time] }}" class="team-shield" alt="{{ resultado.time }}" title="{{ resultado.time }}">
+                                <img src="{{ escudos[resultado.time] }}" class="team-shield" alt="{{ resultado.time }}" title="{{ resultado.time }}">
                                 {% endif %}
                                 <span class="event-name">{{ resultado.torneio }}</span>
                             </div>
@@ -202,11 +234,15 @@
 
         // Script do filtro H2H
         const allMatches = {{ all_matches_details | tojson }};
+        const escudos = {{ escudos | tojson }};
+        const jogadorNome = {{ jogador_nome | tojson }};
+
         function applyFilters() {
             const selectedOpponent = document.getElementById('opponent-selector').value;
             const selectedTournament = document.getElementById('tournament-selector').value;
             const resultsDiv = document.getElementById('match-details-results');
             resultsDiv.innerHTML = '';
+            
             let filteredMatches = allMatches;
             if (selectedOpponent) {
                 filteredMatches = filteredMatches.filter(match => match.oponente === selectedOpponent);
@@ -214,21 +250,48 @@
             if (selectedTournament) {
                 filteredMatches = filteredMatches.filter(match => match.torneio === selectedTournament);
             }
+
             if (filteredMatches.length === 0) {
-                if (selectedOpponent || selectedTournament) {
+                 if (selectedOpponent || selectedTournament) {
                     resultsDiv.innerHTML = '<p style="text-align:center; margin-top:20px; color: var(--cor-texto-secundario-claro);">Nenhuma partida encontrada com estes filtros.</p>';
                 }
                 return;
             }
+
             filteredMatches.reverse().forEach(match => {
-                let resultadoTexto = '';
-                if (match.resultado === 1) { resultadoTexto = `<span class="h2h-win">VITÓRIA</span>`; } 
-                else if (match.resultado === 0.5) { resultadoTexto = `<span class="h2h-draw">EMPATE</span>`; } 
-                else { resultadoTexto = `<span class="h2h-loss">DERROTA</span>`; }
-                const placar = (match.placar_a !== '' && match.placar_b !== '') ? `(${match.placar_a} x ${match.placar_b})` : '';
+                let resultadoLetra = '';
+                let resultadoCor = '';
+
+                // Lógica simplificada que usa o 'resultado_final' já corrigido pelo backend
+                if (match.resultado_final === 1) {
+                    resultadoLetra = 'V';
+                    resultadoCor = 'var(--cor-vitoria)';
+                } else if (match.resultado_final === 0.5) {
+                    resultadoLetra = 'E';
+                    resultadoCor = 'var(--cor-empate)';
+                } else {
+                    resultadoLetra = 'D';
+                    resultadoCor = 'var(--cor-derrota)';
+                }
+                
+                const jogadorEscudoUrl = escudos[match.jogador_time] || "{{ url_for('static', filename='images/avatars/default.png') }}";
+                const oponenteEscudoUrl = escudos[match.oponente_time] || "{{ url_for('static', filename='images/avatars/default.png') }}";
                 const fase = match.fase ? `- ${match.fase}` : '';
-                const oponenteTexto = (selectedOpponent) ? '' : `vs ${match.oponente}`;
-                const matchHtml = `<div class="match-detail-item"><span class="match-detail-torneio">${match.torneio} ${fase} ${oponenteTexto}</span><span class="match-detail-resultado">${resultadoTexto} ${placar}</span></div>`;
+
+                const matchHtml = `
+                    <div class="match-detail-item">
+                        <div class="match-result-indicator" style="color: ${resultadoCor};">${resultadoLetra}</div>
+                        <div class="match-score-display">
+                            <img src="${jogadorEscudoUrl}" class="match-shield" title="${match.jogador_time || 'Time não informado'}">
+                            <span class="match-score-text">${match.jogador_placar} &times; ${match.oponente_placar}</span>
+                            <img src="${oponenteEscudoUrl}" class="match-shield" title="${match.oponente_time || 'Time não informado'}">
+                        </div>
+                        <div class="match-info">
+                            ${match.torneio} ${fase}<br>
+                            vs ${match.oponente}
+                        </div>
+                    </div>
+                `;
                 resultsDiv.innerHTML += matchHtml;
             });
         }
