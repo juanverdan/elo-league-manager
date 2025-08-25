@@ -318,6 +318,7 @@ def gerenciar_escudos():
             'x-rapidapi-host': "v3.football.api-sports.io",
             'x-apisports-key': API_FOOTBALL_KEY
         }
+
         params = {
             "name": nome_time_busca,
             "country": pais 
