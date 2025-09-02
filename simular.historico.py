@@ -13,7 +13,7 @@ dados_historicos = [
     {'jogador': 'Lavieri', 'Champions C1': 90, 'Série B': 350, 'CdB B': 45, 'UNICEF Cup': 45},
     {'jogador': 'Emanuel', 'Champions C1': 90, 'Série B': 200, 'CdB B': 90, 'UNICEF Cup': None},
     {'jogador': 'Temis', 'Champions C1': 180, 'Série B': None, 'CdB B': None, 'UNICEF Cup': 10},
-    {'jogador': 'Wesley', 'Champions C1': 90, 'Série B': None, 'CdB B': None, 'UNICEF Cup': 90},
+    {'jogador': 'Weslley', 'Champions C1': 90, 'Série B': None, 'CdB B': None, 'UNICEF Cup': 90},
     {'jogador': 'João Carlos', 'Champions C1': None, 'Série B': 160, 'CdB B': 10, 'UNICEF Cup': None},
     {'jogador': 'Ledin', 'Champions C1': 90, 'Série B': None, 'CdB B': None, 'UNICEF Cup': 45},
     {'jogador': 'Alex Markes', 'Champions C1': 90, 'Série B': None, 'CdB B': None, 'UNICEF Cup': 45},

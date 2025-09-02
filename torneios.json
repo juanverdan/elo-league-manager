@@ -50,24 +50,22 @@
     "nome": "CRAQUENET League",
     "tipo": "Pontos Corridos",
     "k_factor": 32,
-    "bonus_campeao": 75,
-    "bonus_vice": 50,
-    "bonus_semi": 35,
-    "bonus_quarto": 20,
     "trophy_img": "craquenet.png",
     "participantes": [
-      "Alex Markes",
-      "André",
-      "Daniel Campos",
-      "Emanuel",
-      "Hericles",
-      "Indiano",
-      "Lavieri",
-      "Ledin",
-      "Ramon",
-      "Samuel",
-      "Tiago",
-      "Valdo"
-    ]
+      "Alex Markes", "André", "Daniel Campos", "Emanuel", "Hericles",
+      "Indiano", "Lavieri", "Ledin", "Ramon", "Samuel", "Tiago", "Valdo"
+    ],
+    "bonus_por_colocacao": [250, 180, 130, 90, 70, 55, 40, 30, 20, 15, 10, 5]
+  },
+  {
+    "nome": "CRAQUENET Cup",
+    "tipo": "Mata-Mata",
+    "k_factor": 25,
+    "trophy_img": "default_trophy.png",
+    "participantes": [
+      "Alex Markes", "André", "Daniel Campos", "Emanuel", "Hericles",
+      "Indiano", "Lavieri", "Ledin", "Ramon", "Samuel", "Tiago", "Valdo"
+    ],
+    "bonus_por_colocacao": [100, 70, 45, 45, 20, 20, 20, 20, 10, 10, 10, 10]
   }
 ]

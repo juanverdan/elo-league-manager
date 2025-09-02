@@ -1,14 +1,78 @@
-jogador_a,jogador_b,resultado_a,torneio,placar_a,placar_b,fase
-André,Romário,1,Champions C1,3,2,Final
-André,Valdo,1,UNICEF Cup,2,1,Final
-André,Tiago,1,UNICEF Cup,2,1,Semis
-André,Indiano,1,UNICEF Cup,2,0,Quartas
-André,Ramon,1,UNICEF Cup,2,1,Oitavas
-Hericles,Valdo,0,CDB B,3,1,Final
-Hericles,Valdo,1,UNICEF Cup,0,2,Semi
-Valdo,Ledin,1,CRAQUENET League,3,1,Rodada 1
-Emanuel,Samuel,0.5,CRAQUENET League,0,0,Rodada 1
-Indiano,André,1,CRAQUENET League,1,0,Rodada 1
-Daniel Campos,Hericles,1,CRAQUENET League,1,0,Rodada 1
-Tiago,Alex Markes,1,CRAQUENET League,2,1,Rodada 1
-Ramon,Lavieri,0.5,CRAQUENET League,0,0,Rodada 1
+jogador_a,jogador_b,time_a,time_b,resultado_a,torneio,placar_a,placar_b,fase,penaltis_a,penaltis_b
+Hericles,Valdo,Cuiaba,Botafogo-SP,1,CDB B,3,1,Final
+Hericles,Ramon,Cuiaba,remo,1,CDB B,3,1,Semi
+Tiago,Valdo,Goiás,Botafogo-SP,0,CDB B,1,3,Semis
+André,Romário,Juventus,Milan,1,Champions C1,3,2,Final
+Indiano,Alex Markes,RD Congo,Marrocos,1,UNICEF Cup,3,1,Grupos
+Indiano,Ramon,RD Congo,Zambia (Seleção),1,UNICEF Cup,2,0,Grupos
+Indiano,Weslley,RD Congo,Gana,1,UNICEF Cup,4,0,Oitavas
+André,Daniel Campos,Juventus,Manchester City,1,Champions C1,3,2,Semis
+André,Valdo,Mali (Seleção),Tunisia (Seleção),1,UNICEF Cup,2,1,Final
+André,Tiago,Mali (Seleção),Argélia,1,UNICEF Cup,2,1,Semis
+André,Indiano,Mali (Seleção),RD Congo,1,UNICEF Cup,2,0,Quartas
+Ledin,Samuel,Egito,Costa do Marfim,0,UNICEF Cup,0,1,Oitavas
+André,Ramon,Mali (Seleção),Zambia (Seleção),1,UNICEF Cup,2,1,Oitavas,2,1
+Hericles,Valdo,Cabo Verde,Tunisia (Seleção),0,UNICEF Cup,0,2,Semi
+Hericles,Samuel,Cabo Verde,Costa do Marfim,1,UNICEF Cup,4,3,Quartas
+Valdo,Ledin,Anderlecht,Real Madrid,1,CRAQUENET League,3,1,R1
+Emanuel,Samuel,Bayern,Benfica,0.5,CRAQUENET League,0,0,R1
+Indiano,André,Boca Juniors,Feyernood,1,CRAQUENET League,1,0,R1
+Daniel Campos,Hericles,Leeds,Inter,1,CRAQUENET League,1,0,R1
+Tiago,Alex Markes,United,Celtic,1,CRAQUENET League,2,1,R1
+Ramon,Lavieri,Santos,Ajax,0.5,CRAQUENET League,0,0,R1
+Emanuel,Indiano,Bayern,Boca Juniors,0.5,CRAQUENET League,1,1,R2
+Hericles,Lavieri,Inter,Ajax,0.5,CRAQUENET League,1,1,R2
+Ramon,Ledin,Santos,Real Madrid,1,CRAQUENET League,1,0,R2
+André,Tiago,Feyernood,United,1,CRAQUENET League,2,1,R2
+Alex Markes,Daniel Campos,Celtic,Leeds,0.5,CRAQUENET League,1,1,R2
+Samuel,Valdo,Benfica,Anderlecht,0,CRAQUENET League,0,5,R2
+Lavieri,Alex Markes,Ajax,Celtic,0.5,CRAQUENET League,2,2,R3
+Daniel Campos,André,Leeds,Feyernood,0.5,CRAQUENET League,2,2,R3
+Ledin,Hericles,Real Madrid,Inter,0,CRAQUENET League,0,1,R3
+Indiano,Samuel,Boca Juniors,Benfica,0,CRAQUENET League,1,2,R3
+Tiago,Emanuel,United,Bayern,1,CRAQUENET League,1,0,R3
+Valdo,Ramon,Anderlecht,Santos,1,CRAQUENET League,3,2,R3
+Daniel Campos,Ledin,Leeds,Real Madrid,0,CRAQUENET Cup,0,1,Preliminares,0,0
+Ramon,Tiago,Santos,United,1,CRAQUENET Cup,5,0,Preliminares,0,0
+Valdo,Indiano,Anderlecht,Boca Juniors,1,CRAQUENET Cup,3,2,Preliminares,0,0
+Emanuel,Hericles,Bayern,Inter,1,CRAQUENET Cup,0,0,Preliminares,4,3
+Alex Markes,Ledin,Celtic,Real Madrid,1,CRAQUENET League,2,0,R4,,
+Ramon,Hericles,Santos,Inter,1,CRAQUENET League,1,0,R4,,
+Indiano,Valdo,Boca Juniors,Anderlecht,0.5,CRAQUENET League,2,2,R4,,
+Samuel,Tiago,Benfica,United,1,CRAQUENET League,5,2,R4,,
+André,Lavieri,Feyernood,Ajax,0.5,CRAQUENET League,1,1,R4,,
+Emanuel,Daniel Campos,Bayern,Leeds,1,CRAQUENET League,2,1,R4,,
+Tiago,Indiano,United,Boca Juniors,1,CRAQUENET League,2,1,R5,,
+Daniel Campos,Samuel,Leeds,Benfica,1,CRAQUENET League,4,1,R5,,
+Lavieri,Emanuel,Ajax,Bayern,1,CRAQUENET League,1,0,R5,,
+Valdo,Hericles,Anderlecht,Inter,1,CRAQUENET League,2,0,R5,,
+Ledin,André,Real Madrid,Feyernood,0.5,CRAQUENET League,1,1,R5,,
+Ramon,Alex Markes,Santos,Celtic,0.5,CRAQUENET League,0,0,R5,,
+Indiano,Daniel Campos,Boca Juniors,Leeds,1,CRAQUENET League,3,2,R6,,
+Ledin,Emanuel,Real Madrid,Bayern,1,CRAQUENET League,1,0,R6,,
+Alex Markes,Hericles,Celtic,Inter,0.5,CRAQUENET League,1,1,R6,,
+Lavieri,Samuel,Ajax,Benfica,0.5,CRAQUENET League,1,1,R6,,
+André,Ramon,Feyernood,Santos,0.5,CRAQUENET League,0,0,R6,,
+Valdo,Tiago,Anderlecht,United,1,CRAQUENET League,5,0,R6,,
+Valdo,Alex Markes,Anderlecht,Celtic,1,CRAQUENET League,4,0,R7,,
+Ramon,Emanuel,Santos,Bayern,1,CRAQUENET League,4,1,R7,,
+Daniel Campos,Tiago,Leeds,United,0.5,CRAQUENET League,1,1,R7,,
+Lavieri,Indiano,Ajax,Boca Juniors,1,CRAQUENET League,1,0,R7,,
+Hericles,André,Inter,Feyernood,0.5,CRAQUENET League,1,1,R7,,
+Ledin,Samuel,Real Madrid,Benfica,1,CRAQUENET League,3,1,R7,,
+Ramon,Samuel,Santos,Benfica,1,CRAQUENET League,1,0,R8,,
+Tiago,Lavieri,United,Ajax,1,CRAQUENET League,1,0,R8,,
+Emanuel,Hericles,Bayern,Inter,1,CRAQUENET League,3,1,R8,,
+Daniel Campos,Valdo,Leeds,Anderlecht,1,CRAQUENET League,1,0,R8,,
+Indiano,Ledin,Boca Juniors,Real Madrid,1,CRAQUENET League,2,0,R8,,
+André,Alex Markes,Feyernood,Celtic,1,CRAQUENET League,2,0,R8,,
+Ramon,Lavieri,Santos,Ajax,1,CRAQUENET Cup,6,2,Quartas,,
+Ledin,André,Real Madrid,Feyernood,0,CRAQUENET Cup,0,1,Quartas,,
+Samuel,Valdo,Benfica,Anderlecht,0,CRAQUENET Cup,2,3,Quartas,,
+Emanuel,Alex Markes,Bayern,Celtic,1,CRAQUENET Cup,6,0,Quartas,,
+Lavieri,Daniel Campos,Ajax,Leeds,1,CRAQUENET League,4,2,R9,,
+Valdo,André,Anderlecht,Feyernood,0.5,CRAQUENET League,1,1,R9,,
+Hericles,Samuel,Inter,Benfica,0.5,CRAQUENET League,1,1,R9,,
+Ramon,Indiano,Santos,Boca Juniors,0.5,CRAQUENET League,1,1,R9,,
+Tiago,Ledin,United,Real Madrid,0.5,CRAQUENET League,0,0,R9,,
+Alex Markes,Emanuel,Celtic,Bayern,0.5,CRAQUENET League,2,2,R9,,

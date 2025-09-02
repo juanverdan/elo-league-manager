@@ -2,83 +2,167 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Registrar Partida</title>
+    <title>Registrar Múltiplas Partidas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         :root {
             --cor-fundo-escuro: #1a1a1d; --cor-container-escuro: #2c2f33; --cor-texto-principal-claro: #e0e0e0;
             --cor-texto-secundario-claro: #a0a0a0; --cor-borda-escura: #4a4a4a; --cor-header-tabela: #2563eb;
+            --cor-vitoria: #22c55e; --cor-derrota: #ef4444;
         }
         body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo-escuro); color: var(--cor-texto-principal-claro); margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 40px auto; background: var(--cor-container-escuro); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid var(--cor-borda-escura); }
+        .container { max-width: 900px; margin: 40px auto; background: var(--cor-container-escuro); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid var(--cor-borda-escura); }
         h1 { text-align: center; border-bottom: 1px solid var(--cor-borda-escura); padding-bottom: 15px; margin-top: 0; }
-        form { display: flex; flex-direction: column; gap: 15px; }
-        .form-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 15px; align-items: flex-end; }
-        select, input, button { padding: 12px; border-radius: 6px; border: 1px solid var(--cor-borda-escura); font-size: 16px; width: 100%; box-sizing: border-box; background-color: #3d3d4d; color: var(--cor-texto-principal-claro); font-family: 'Inter', sans-serif;}
-        button { background-color: #28a745; color: white; font-weight: bold; cursor: pointer; border: none; transition: background-color 0.2s; margin-top: 10px;}
-        button:hover { background-color: #218838; }
+        select, input, button { padding: 10px; border-radius: 6px; border: 1px solid var(--cor-borda-escura); font-size: 14px; background-color: #3d3d4d; color: var(--cor-texto-principal-claro); font-family: 'Inter', sans-serif; }
+        label { margin-bottom: 5px; color: var(--cor-texto-secundario-claro); font-weight: 500; font-size: 12px; display: block; }
         .form-group { display: flex; flex-direction: column; }
-        label { margin-bottom: 5px; color: var(--cor-texto-secundario-claro); font-weight: 500; }
         .back-link { display: block; text-align: center; margin-top: 30px; text-decoration: none; color: var(--cor-header-tabela); font-weight: bold; }
+        
+        .partida-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 50px 20px 50px 1.5fr 1fr;
+            gap: 10px;
+            align-items: end;
+            padding: 20px 15px 15px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: #36393f;
+            position: relative;
+            border-left: 4px solid var(--cor-borda-escura);
+        }
+        .placar-separator { text-align: center; font-weight: bold; font-size: 1.2em; padding-bottom: 8px; }
+
+        .partida-meta {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            background-color: #2f3136;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            grid-column: 1 / -1;
+        }
+
+        .botoes-acao { display: flex; gap: 15px; margin-top: 20px; }
+        .btn {
+            width: 100%; padding: 12px; font-size: 16px; font-weight: bold;
+            cursor: pointer; border: none; transition: background-color 0.2s; border-radius: 6px;
+        }
+        .btn-principal { background-color: var(--cor-vitoria); color: white; }
+        .btn-principal:hover { background-color: #1a9a4a; }
+        .btn-secundario { background-color: var(--cor-header-tabela); color: white; }
+        .btn-secundario:hover { background-color: #1e4bb1; }
+
+        .btn-remover {
+            position: absolute; top: 5px; right: 5px; background: none; border: none;
+            color: var(--cor-texto-secundario-claro); cursor: pointer; font-size: 20px; line-height: 1;
+        }
+        .btn-remover:hover { color: var(--cor-derrota); }
+
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📝 Registrar Partida</h1>
+        <h1>📝 Registrar Múltiplas Partidas</h1>
+
         <form action="{{ url_for('registrar_partida_route') }}" method="post">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="jogador_a">Jogador A</label>
-                    <select name="jogador_a" id="jogador_a" required>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
-                </div>
-                <div class="form-group">
-                    <label for="forca_time_a">Força Time</label>
-                    <input type="number" name="forca_time_a" value="85" required>
-                </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="jogador_b">Jogador B</label>
-                    <select name="jogador_b" id="jogador_b" required>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
-                </div>
-                <div class="form-group">
-                    <label for="forca_time_b">Força Time</label>
-                    <input type="number" name="forca_time_b" value="85" required>
+            
+            <div id="partidas-container">
+                <div class="partida-row">
+                    <button type="button" class="btn-remover" title="Remover Partida">&times;</button>
+                    <div class="form-group">
+                        <label>Jogador A</label>
+                        <select name="jogador_a" required><option value="">Selecione</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Time A</label>
+                        <input type="text" name="time_a" list="times-sugeridos" placeholder="Time A" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Placar A</label>
+                        <input type="number" name="placar_a" value="0" min="0" required>
+                    </div>
+                    <div class="placar-separator">&times;</div>
+                    <div class="form-group">
+                        <label>Placar B</label>
+                        <input type="number" name="placar_b" value="0" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Time B</label>
+                        <input type="text" name="time_b" list="times-sugeridos" placeholder="Time B" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Jogador B</label>
+                        <select name="jogador_b" required><option value="">Selecione</option>{% for j in jogadores %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select>
+                    </div>
+                    
+                    <div class="partida-meta">
+                        <div class="form-group">
+                            <label>Torneio</label>
+                            <select name="torneio" required>{% for t in torneios %}<option value="{{ t }}">{{ t }}</option>{% endfor %}</select>
+                        </div>
+                         <div class="form-group">
+                            <label>Resultado para Jogador A</label>
+                            <select name="resultado" required>
+                                <option value="vitoria_a">Vitória</option>
+                                <option value="empate">Empate</option>
+                                <option value="derrota_a">Derrota</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Fase (Opcional)</label>
+                            <input type="text" name="fase" placeholder="Ex: Final, R3">
+                        </div>
+                        <input type="hidden" name="forca_time_a" value="85">
+                        <input type="hidden" name="forca_time_b" value="85">
+                        <input type="hidden" name="penaltis_a" value="">
+                        <input type="hidden" name="penaltis_b" value="">
+                    </div>
                 </div>
             </div>
 
-            <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="form-group">
-                    <label for="placar_a">Placar A</label>
-                    <input type="number" name="placar_a" value="0" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="placar_b">Placar B</label>
-                    <input type="number" name="placar_b" value="0" min="0" required>
-                </div>
+            <div class="botoes-acao">
+                <button type="button" id="add-partida-btn" class="btn btn-secundario">Adicionar Nova Partida</button>
+                <button type="submit" class="btn btn-principal">Registrar Todas</button>
             </div>
-            <div class="form-group">
-                <label for="fase">Fase / Rodada (Opcional)</label>
-                <input type="text" name="fase" id="fase" placeholder="Ex: Final, Rodada 3, etc.">
-            </div>
-            <div class="form-group" style="margin-top: 10px;">
-                <label for="resultado">Resultado para Jogador A</label>
-                <select name="resultado" id="resultado" required>
-                    <option value="vitoria_a">Vitória</option>
-                    <option value="empate">Empate</option>
-                    <option value="derrota_a">Derrota</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="torneio">Torneio</label>
-                <select name="torneio" id="torneio" required>{% for t in torneios %}<option value="{{ t }}">{{ t }}</option>{% endfor %}</select>
-            </div>
-            <button type="submit">Registrar!</button>
         </form>
+
+        <datalist id="times-sugeridos">
+            {% for time in nomes_dos_times %}<option value="{{ time }}">{% endfor %}
+        </datalist>
+
         <a href="{{ url_for('index') }}" class="back-link">← Voltar para o Ranking</a>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('partidas-container');
+
+            document.getElementById('add-partida-btn').addEventListener('click', function() {
+                const primeiraPartida = container.querySelector('.partida-row');
+                const novaPartida = primeiraPartida.cloneNode(true);
+
+                // Limpa os valores dos inputs e selects clonados para evitar copiar dados
+                novaPartida.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
+                novaPartida.querySelectorAll('input[type="number"]').forEach(input => input.value = '0');
+                novaPartida.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+                
+                container.appendChild(novaPartida);
+            });
+
+            container.addEventListener('click', function(e) {
+                // Procura por um clique no botão de remover
+                if (e.target && e.target.classList.contains('btn-remover')) {
+                    // Garante que não é possível remover a última linha de partida
+                    if (container.querySelectorAll('.partida-row').length > 1) {
+                        e.target.closest('.partida-row').remove();
+                    } else {
+                        alert('A última partida não pode ser removida.');
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
